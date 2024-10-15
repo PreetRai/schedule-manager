@@ -47,6 +47,7 @@ function EmployeeLogin() {
       if (employeeData.claimed) {
         // If the account is already claimed, just sign in
         await signInWithEmailAndPassword(auth, email, password);
+        navigate('/employee-portal');
       } else {
         // If the account is not claimed, create a new auth account
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
