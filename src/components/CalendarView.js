@@ -13,6 +13,7 @@ function CalendarView() {
   const [currentShift, setCurrentShift] = useState(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
  const [selectedStore, setSelectedStore] = useState(null);
+ const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const storeColors = {
     'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
@@ -76,10 +77,11 @@ function CalendarView() {
         date: format(date, 'yyyy-MM-dd'),
         start_time: defaultTimes.start_time,
         end_time: defaultTimes.end_time,
-        store_id: '' 
+        store_id: employee.store_id // Set the default store_id
       });
     }
     setShowModal(true);
+    setSelectedEmployeeStoreId(employee.store_id);
   };
 
   const handleSaveShift = async (shiftData) => {
@@ -152,7 +154,6 @@ function CalendarView() {
             <option key={store.id} value={store.id}>{store.name}</option>
           ))}
         </select>
-        {/* ... other header content ... */}
       </div>
       {selectedStore ? (
         <StoreCalendarView
@@ -175,6 +176,7 @@ function CalendarView() {
     <ul>
       {employees.map(employee => {
         const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
+        
         return (
           <li
             key={employee.id}
@@ -207,13 +209,18 @@ function CalendarView() {
             <td className="border p-2">{employee.name}</td>
             {days.map(day => {
     const shift = getShiftForEmployeeAndDay(employee.id, day);
+    const formatTime12Hour = (time) => {
+      if (!time) return '';
+      const [hours, minutes] = time.split(':');
+      return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+    };
     return (
       <td
         key={day}
         className={`border p-2 cursor-pointer ${shift ? storeColors[shift.store_id] || '' : ''}`}
         onClick={() => handleCellClick(employee, day)}
       >
-        {shift ? `${shift.start_time} - ${shift.end_time}` : ''}
+    {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : ''}
       </td>
     );
   })}
@@ -233,6 +240,7 @@ function CalendarView() {
       onDelete={handleDeleteShift}
       onClose={() => setShowModal(false)}
       stores={stores}
+      employeeStoreId={selectedEmployeeStoreId} // Pass the employee's store_id
     />
   )}z
       </div>
@@ -243,11 +251,10 @@ function CalendarView() {
 }
 
 
-function ShiftModal({ shift, onSave, onDelete, onClose,stores }) {
+function ShiftModal({ shift, onSave, onDelete, onClose,stores,employeeStoreId  }) {
   const [startTime, setStartTime] = useState(shift.start_time || '');
   const [endTime, setEndTime] = useState(shift.end_time || '');
-  const [storeId, setStoreId] = useState(shift.store_id || '');
-
+  const [storeId, setStoreId] = useState(shift.store_id || employeeStoreId || '');
   const handleSubmit = (e) => {
     e.preventDefault();
     const updatedShift = {
@@ -315,7 +322,7 @@ function ShiftModal({ shift, onSave, onDelete, onClose,stores }) {
             >
               <option value="">Select Store</option>
               {stores.map(store => (
-                <option key={store.id} value={store.id}>{store.name}</option>
+                <option key={store.id} value={store.id}>{store.name} {store.id === employeeStoreId ? '(Default)' : ''}</option>
               ))}
             </select>
           </div>

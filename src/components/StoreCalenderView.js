@@ -13,7 +13,6 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
   const storeColors = {
     'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
     'mgo6a1LkZ9PWQgczHZsT': 'bg-purple-200',
-    // Add more store colors as needed
   };
 
   useEffect(() => {
@@ -130,13 +129,18 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
                 <td className="border p-2">{employee.name}</td>
                 {days.map(day => {
                   const shift = getShiftForEmployeeAndDay(employee.id, day);
+                  const formatTime12Hour = (time) => {
+                    if (!time) return '';
+                    const [hours, minutes] = time.split(':');
+                    return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+                  };
                   return (
                     <td
                       key={day}
                       className={`border p-2 cursor-pointer ${shift ? storeColors[storeId] || '' : ''}`}
                       onClick={() => handleCellClick(employee, day)}
                     >
-                      {shift ? `${shift.start_time} - ${shift.end_time}` : ''}
+                  {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : ''}
                     </td>
                   );
                 })}

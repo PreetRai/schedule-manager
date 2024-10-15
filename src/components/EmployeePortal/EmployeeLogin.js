@@ -55,7 +55,8 @@ function EmployeeLogin() {
         // Create a new document with the UID as the document ID
         await setDoc(doc(db, 'employees', userCredential.user.uid), {
           ...employeeData,
-          claimed: true
+          claimed: true,
+          id:userCredential.user.uid
         });
 
         // Delete the old document
