@@ -37,7 +37,7 @@ function Navigation() {
                 <>
                   <li><Link to="/" className="hover:text-gray-300">Dashboard</Link></li>
                   <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
-                  <li><Link to="/calendar" className="hover:text-gray-300">Calendar</Link></li>
+                  <li><Link to="/calendar" className="hover:text-gray-300">Scheduler</Link></li>
                   <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
                   <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
                 </>

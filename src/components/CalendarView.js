@@ -3,7 +3,8 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
 import StoreCalendarView from './StoreCalenderView';
-
+import { useStoreColors } from '../contexts/StoreColorContext';
+import Legend from './Legend';
 function CalendarView() {
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([]);
@@ -14,12 +15,9 @@ function CalendarView() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
  const [selectedStore, setSelectedStore] = useState(null);
  const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
+ const storeColors = useStoreColors();
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const storeColors = {
-    'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
-    'mgo6a1LkZ9PWQgczHZsT': 'bg-purple-200',
-    
-  };
+ 
   useEffect(() => {
     fetchEmployees();
     fetchShifts();
@@ -173,6 +171,7 @@ function CalendarView() {
         <div className="flex flex-1 overflow-hidden">
         <div className="w-1/4 p-4 border-r overflow-y-auto">
     <h2 className="text-xl font-bold mb-4">Employees</h2>
+    <Legend stores={stores} title={"Stores"}/>
     <ul>
       {employees.map(employee => {
         const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);

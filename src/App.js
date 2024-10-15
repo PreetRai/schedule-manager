@@ -13,9 +13,11 @@ import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import EmployeePortal from './components/EmployeePortal/EmployeePortal'; 
 import EmployeeLogin from './components/EmployeePortal/EmployeeLogin';
+import { StoreColorProvider } from './contexts/StoreColorContext';
 function App() {
   return (
     <AuthProvider>
+        <StoreColorProvider>
       <Router>
         <div className="App">
           <Navigation />
@@ -49,6 +51,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+      </StoreColorProvider>
     </AuthProvider>
   );
 }
