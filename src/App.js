@@ -12,6 +12,9 @@ import Unauthorized from './components/Unauthorized';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Signup from './components/Signup';
 import AdminPanel from './components/AdminPanel';
+import EmployeeLogin from './components/EmployeeLogin';
+import EmployeeSignUp from './components/EmployeeSignUp';
+import EmployeeTimesheet from './components/EmployeeTimesheet'
 function App() {
   return (
     <AuthProvider>
@@ -31,7 +34,9 @@ function App() {
               </RoleRoute>
             } />
             <Route path="/login" element={<Login />} />
-            
+            <Route path="/emplogin" element={<EmployeeLogin />} />
+            <Route path="/emptime" element={<EmployeeTimesheet />} />
+            <Route path="/empsignup" element={<EmployeeSignUp />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/" element={

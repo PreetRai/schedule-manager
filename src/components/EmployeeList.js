@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { db } from '../firebase';
 
 function EmployeeList() {
@@ -7,12 +8,12 @@ function EmployeeList() {
   const [stores, setStores] = useState([]);
   const [newEmployee, setNewEmployee] = useState({
     name: '',
-    number: '',
     email: '',
     phone: '',
     role: '',
     pay: '',
-    store_id: ''
+    store_id: '',
+    claimed: false
   });
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,7 @@ function EmployeeList() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const roles = ['Driver', 'Field Worker', 'Admin', 'Manager'];
+  const auth = getAuth();
 
   useEffect(() => {
     fetchEmployees();
@@ -68,8 +70,8 @@ function EmployeeList() {
 
     const employeeData = editingEmployee || newEmployee;
 
-    if (!employeeData.name || !employeeData.role || !employeeData.store_id) {
-      setError("Please fill in name, role, and store.");
+    if (!employeeData.name || !employeeData.role || !employeeData.store_id || !employeeData.email) {
+      setError("Please fill in name, email, role, and store.");
       return;
     }
 
@@ -78,17 +80,27 @@ function EmployeeList() {
         await updateDoc(doc(db, 'employees', editingEmployee.id), employeeData);
         setSuccessMessage("Employee updated successfully!");
       } else {
-        await addDoc(collection(db, 'employees'), employeeData);
+        // Create a new user account
+        const userCredential = await createUserWithEmailAndPassword(auth, employeeData.email, 'defaultPassword');
+        const user = userCredential.user;
+
+        // Add the employee to Firestore with the UID as the document ID
+        await addDoc(collection(db, 'employees'), {
+          ...employeeData,
+          uid: user.uid,
+          claimed: false
+        });
+
         setSuccessMessage("Employee added successfully!");
       }
       setNewEmployee({
         name: '',
-        number: '',
         email: '',
         phone: '',
         role: '',
         pay: '',
-        store_id: ''
+        store_id: '',
+        claimed: false
       });
       setEditingEmployee(null);
       fetchEmployees();
@@ -165,6 +177,15 @@ function EmployeeList() {
               className="w-full px-3 py-2 border rounded-md"
               required
             />
+            <input
+              type="email"
+              name="email"
+              value={editingEmployee ? editingEmployee.email : newEmployee.email}
+              onChange={handleInputChange}
+              placeholder="Email *"
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
             <select
               name="role"
               value={editingEmployee ? editingEmployee.role : newEmployee.role}
@@ -189,22 +210,6 @@ function EmployeeList() {
                 <option key={store.id} value={store.id}>{store.name}</option>
               ))}
             </select>
-            <input
-              type="text"
-              name="number"
-              value={editingEmployee ? editingEmployee.number : newEmployee.number}
-              onChange={handleInputChange}
-              placeholder="Employee Number (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            <input
-              type="email"
-              name="email"
-              value={editingEmployee ? editingEmployee.email : newEmployee.email}
-              onChange={handleInputChange}
-              placeholder="Email (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
             <input
               type="tel"
               name="phone"
