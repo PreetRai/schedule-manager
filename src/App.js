@@ -11,7 +11,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Signup from './components/Signup';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import EmployeePortal from './components/EmployeePortal'; // Create this component
+import EmployeePortal from './components/EmployeePortal/EmployeePortal'; 
 
 function App() {
   return (

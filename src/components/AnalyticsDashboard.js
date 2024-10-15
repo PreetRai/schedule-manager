@@ -85,7 +85,7 @@ function AnalyticsDashboard() {
             </div>
             <div className="bg-green-100 p-4 rounded-lg">
               <h2 className="text-lg font-semibold">Total Stores</h2>
-              <p className="text-3xl font-bold">{totalStores}</p>
+              <p className="text-3xl font-bold">{totalStores-1}</p>
             </div>
             <div className="bg-yellow-100 p-4 rounded-lg">
               <h2 className="text-lg font-semibold">Hours Scheduled (This Week)</h2>
