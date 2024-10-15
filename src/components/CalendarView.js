@@ -241,7 +241,7 @@ function CalendarView() {
       stores={stores}
       employeeStoreId={selectedEmployeeStoreId} // Pass the employee's store_id
     />
-  )}z
+  )}
       </div>
     
       )}
