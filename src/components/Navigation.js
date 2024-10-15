@@ -28,8 +28,8 @@ function Navigation() {
         <ul className="flex justify-end items-center gap-5">
           {!currentUser ? (
             <>
-              <li><Link to="/employee-login" className="hover:text-gray-300">Employee Login</Link></li>
-              <li><Link to="/login" className="hover:text-gray-300">Admin Login</Link></li>
+              <li><Link to="/employee-login" className="hover:text-gray-300">Employee Account Claim</Link></li>
+              <li><Link to="/login" className="hover:text-gray-300">Account Login</Link></li>
             </>
           ) : (
             <>

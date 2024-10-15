@@ -46,8 +46,8 @@ function EmployeeLogin() {
 
       if (employeeData.claimed) {
         // If the account is already claimed, just sign in
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate('/employee-portal');
+        await signInWithEmailAndPassword(auth, email, password) &&  navigate('/employee-dashboard');
+      
       } else {
         // If the account is not claimed, create a new auth account
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -78,7 +78,7 @@ function EmployeeLogin() {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Employee Login
+            Employee Account Claim
           </h2>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
@@ -121,7 +121,7 @@ function EmployeeLogin() {
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Sign in / Claim Account
+              Claim Account
             </button>
           </div>
         </form>
