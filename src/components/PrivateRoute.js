@@ -9,10 +9,17 @@ function PrivateRoute({ component: Component, requiredRole, ...rest }) {
     return <Navigate to="/login" />;
   }
 
-  if (requiredRole && userRole !== requiredRole && userRole !== 'admin') {
-    return <Navigate to="/unauthorized" />;
+  if (requiredRole) {
+    if (userRole === 'admin') {
+      return <Component {...rest} />;
+    } else if (userRole === 'employee') {
+      return <Navigate to="/employee-portal" />;
+    } else {
+      return <Navigate to="/unauthorized" />;
+    }
   }
 
+  // If no specific role is required, allow access
   return <Component {...rest} />;
 }
 

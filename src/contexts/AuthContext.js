@@ -16,11 +16,12 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
-        const role = await fetchUserRole(user.uid);
-        setUserRole(role);
+        const userData = await fetchUserData(user.uid);
+        setCurrentUser(userData);
+        setUserRole(userData.role);
       } else {
+        setCurrentUser(null);
         setUserRole(null);
       }
       setLoading(false);
@@ -29,15 +30,15 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  const fetchUserRole = async (uid) => {
+  const fetchUserData = async (uid) => {
     try {
       const userDoc = await getDoc(doc(db, 'employees', uid));
       if (userDoc.exists()) {
-        return userDoc.data().role;
+        return { uid, ...userDoc.data() };
       }
       return null;
     } catch (error) {
-      console.error("Error fetching user role:", error);
+      console.error("Error fetching user data:", error);
       return null;
     }
   };

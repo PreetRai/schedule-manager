@@ -1,15 +1,30 @@
-// src/components/EmployeeLogin/EmployeeLogin.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { auth, db } from '../../firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 function EmployeeLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, redirect to employee-portal
+        navigate('/employee-portal');
+      } else {
+        // No user is signed in, allow login
+        setLoading(false);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,11 +51,14 @@ function EmployeeLogin() {
         // If the account is not claimed, create a new auth account
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
-        // Update the employee document with the new UID and set claimed to true
-        await updateDoc(doc(db, 'employees', employeeDoc.id), {
-          uid: userCredential.user.uid,
+        // Create a new document with the UID as the document ID
+        await setDoc(doc(db, 'employees', userCredential.user.uid), {
+          ...employeeData,
           claimed: true
         });
+
+        // Delete the old document
+        await deleteDoc(doc(db, 'employees', employeeDoc.id));
       }
 
       // Redirect to the employee portal or dashboard
@@ -49,6 +67,10 @@ function EmployeeLogin() {
       setError(error.message);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

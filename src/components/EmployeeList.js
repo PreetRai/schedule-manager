@@ -11,7 +11,7 @@ function EmployeeList() {
     email: '',
     phone: '',
     role: '',
-    pay: '',
+    pay: 0,
     store_id: ''
   });
   const [editingEmployee, setEditingEmployee] = useState(null);
@@ -86,7 +86,7 @@ function EmployeeList() {
         email: '',
         phone: '',
         role: '',
-        pay: '',
+        pay: 0,
         store_id: ''
       });
       setEditingEmployee(null);
