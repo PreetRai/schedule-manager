@@ -20,6 +20,7 @@ function Signup() {
 
       // Add user to Firestore
       await setDoc(doc(db, 'employees', user.uid), {
+        claimed:true,
         name: name,
         email: email,
         role: 'admin' // Default role

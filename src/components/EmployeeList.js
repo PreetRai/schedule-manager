@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
   const [stores, setStores] = useState([]);
   const [newEmployee, setNewEmployee] = useState({
+    claimed:false,
     name: '',
-    number: '',
     email: '',
     phone: '',
     role: '',
@@ -19,7 +19,7 @@ function EmployeeList() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const roles = ['Driver', 'Field Worker', 'Admin', 'Manager'];
+  const roles = ['driver', 'employee', 'admin', 'manager'];
 
   useEffect(() => {
     fetchEmployees();
@@ -34,7 +34,6 @@ function EmployeeList() {
       const employeeList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEmployees(employeeList);
     } catch (err) {
-      console.error("Error fetching employees:", err);
       setError("Failed to fetch employees. Please try again.");
     } finally {
       setLoading(false);
@@ -82,8 +81,8 @@ function EmployeeList() {
         setSuccessMessage("Employee added successfully!");
       }
       setNewEmployee({
+        claimed:false,
         name: '',
-        number: '',
         email: '',
         phone: '',
         role: '',
@@ -189,14 +188,7 @@ function EmployeeList() {
                 <option key={store.id} value={store.id}>{store.name}</option>
               ))}
             </select>
-            <input
-              type="text"
-              name="number"
-              value={editingEmployee ? editingEmployee.number : newEmployee.number}
-              onChange={handleInputChange}
-              placeholder="Employee Number (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
+        
             <input
               type="email"
               name="email"
