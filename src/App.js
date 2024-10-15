@@ -10,6 +10,9 @@ import Unauthorized from './components/Unauthorized';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
 import Signup from './components/Signup';
 import { AuthProvider } from './contexts/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import EmployeePortal from './components/EmployeePortal'; // Create this component
+
 function App() {
   return (
     <AuthProvider>
@@ -17,33 +20,34 @@ function App() {
         <div className="App">
           <Navigation />
           <Routes>
-      
-          <Route path="/analytics" element={
-                <AnalyticsDashboard />
-                
-            } />
             <Route path="/login" element={<Login />} />
-            
             <Route path="/signup" element={<Signup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            
             <Route path="/" element={
-                <Dashboard />
+              <PrivateRoute component={Dashboard} requiredRole="admin" />
             } />
             <Route path="/employees" element={
-                <EmployeeList />
+              <PrivateRoute component={EmployeeList} requiredRole="admin" />
             } />
-        
             <Route path="/stores" element={
-                <StoreManager />
+              <PrivateRoute component={StoreManager} requiredRole="admin" />
             } />
             <Route path="/calendar" element={
-                <CalendarView />
+              <PrivateRoute component={CalendarView} requiredRole="admin" />
+            } />
+            <Route path="/analytics" element={
+              <PrivateRoute component={AnalyticsDashboard} requiredRole="admin" />
+            } />
+            
+            {/* New route for non-admin users */}
+            <Route path="/employee-portal" element={
+              <PrivateRoute component={EmployeePortal} />
             } />
           </Routes>
         </div>
       </Router>
-      </AuthProvider>
+    </AuthProvider>
   );
 }
-
 export default App;
