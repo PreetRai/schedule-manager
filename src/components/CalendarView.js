@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
+import StoreCalendarView from './StoreCalenderView';
 
 function CalendarView() {
   const [employees, setEmployees] = useState([]);
@@ -11,7 +12,7 @@ function CalendarView() {
   const [showModal, setShowModal] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
-
+ const [selectedStore, setSelectedStore] = useState(null);
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const storeColors = {
     'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
@@ -138,83 +139,109 @@ function CalendarView() {
   
     return { hours: totalHours, earnings: totalEarnings };
   };
-
   return (
     <div className="flex flex-col h-screen">
       <div className="flex justify-between items-center p-4">
-        <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
-        <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
-        <button onClick={handleNextWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
-      </div>
-      <div className="flex flex-1 overflow-hidden">
-      <div className="w-1/4 p-4 border-r overflow-y-auto">
-  <h2 className="text-xl font-bold mb-4">Employees</h2>
-  <ul>
-    {employees.map(employee => {
-      const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
-      return (
-        <li
-          key={employee.id}
-          className={`p-2 cursor-pointer ${selectedEmployee?.id === employee.id ? 'bg-blue-100' : ''}`}
-          onClick={() => setSelectedEmployee(employee)}
+        <select
+          value={selectedStore || ''}
+          onChange={(e) => setSelectedStore(e.target.value)}
+          className="p-2 border rounded"
         >
-          {employee.name} - ${earnings.toFixed(2)}
-        </li>
-      );
-    })}
-  </ul>
-</div>
-        <div className="w-3/4 p-4 overflow-x-auto">
-        <table className="w-full border-collapse">
-  <thead>
-    <tr>
-      <th className="border p-2">Employee</th>
-      {days.map(day => (
-        <th key={day} className="border p-2">{day}</th>
-      ))}
-      <th className="border p-2">Total Hours</th>
-      <th className="border p-2">Total Earnings</th>
-    </tr>
-  </thead>
-  <tbody>
-    {employees.map(employee => {
-      const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
-      return (
-        <tr key={employee.id}>
-          <td className="border p-2">{employee.name}</td>
-          {days.map(day => {
-  const shift = getShiftForEmployeeAndDay(employee.id, day);
-  return (
-    <td
-      key={day}
-      className={`border p-2 cursor-pointer ${shift ? storeColors[shift.store_id] || '' : ''}`}
-      onClick={() => handleCellClick(employee, day)}
-    >
-      {shift ? `${shift.start_time} - ${shift.end_time}` : ''}
-    </td>
-  );
-})}
-          <td className="border p-2">{hours.toFixed(2)}</td>
-          <td className="border p-2">${earnings.toFixed(2)}</td>
-        </tr>
-      );
-    })}
-  </tbody>
-</table>
-        </div>
+          <option value="">All Stores</option>
+          {stores.map(store => (
+            <option key={store.id} value={store.id}>{store.name}</option>
+          ))}
+        </select>
+        {/* ... other header content ... */}
       </div>
-      {showModal && (
-  <ShiftModal
-    shift={currentShift}
-    onSave={handleSaveShift}
-    onDelete={handleDeleteShift}
-    onClose={() => setShowModal(false)}
-    stores={stores}
-  />
-)}z
+      {selectedStore ? (
+        <StoreCalendarView
+          storeId={selectedStore}
+          employees={employees}
+          stores={stores}
+          onShiftUpdate={fetchShifts}
+        />
+      ) : (
+   
+        <div className="flex flex-col h-screen">
+        <div className="flex justify-between items-center p-4">
+          <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
+          <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
+          <button onClick={handleNextWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
+        </div>
+        <div className="flex flex-1 overflow-hidden">
+        <div className="w-1/4 p-4 border-r overflow-y-auto">
+    <h2 className="text-xl font-bold mb-4">Employees</h2>
+    <ul>
+      {employees.map(employee => {
+        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
+        return (
+          <li
+            key={employee.id}
+            className={`p-2 cursor-pointer ${selectedEmployee?.id === employee.id ? 'bg-blue-100' : ''}`}
+            onClick={() => setSelectedEmployee(employee)}
+          >
+            {employee.name} - ${earnings.toFixed(2)}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+          <div className="w-3/4 p-4 overflow-x-auto">
+          <table className="w-full border-collapse">
+    <thead>
+      <tr>
+        <th className="border p-2">Employee</th>
+        {days.map(day => (
+          <th key={day} className="border p-2">{day}</th>
+        ))}
+        <th className="border p-2">Total Hours</th>
+        <th className="border p-2">Total Earnings</th>
+      </tr>
+    </thead>
+    <tbody>
+      {employees.map(employee => {
+        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
+        return (
+          <tr key={employee.id}>
+            <td className="border p-2">{employee.name}</td>
+            {days.map(day => {
+    const shift = getShiftForEmployeeAndDay(employee.id, day);
+    return (
+      <td
+        key={day}
+        className={`border p-2 cursor-pointer ${shift ? storeColors[shift.store_id] || '' : ''}`}
+        onClick={() => handleCellClick(employee, day)}
+      >
+        {shift ? `${shift.start_time} - ${shift.end_time}` : ''}
+      </td>
+    );
+  })}
+            <td className="border p-2">{hours.toFixed(2)}</td>
+            <td className="border p-2">${earnings.toFixed(2)}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+          </div>
+        </div>
+        {showModal && (
+    <ShiftModal
+      shift={currentShift}
+      onSave={handleSaveShift}
+      onDelete={handleDeleteShift}
+      onClose={() => setShowModal(false)}
+      stores={stores}
+    />
+  )}z
+      </div>
+    
+      )}
     </div>
   );
 }
+
 
 function ShiftModal({ shift, onSave, onDelete, onClose,stores }) {
   const [startTime, setStartTime] = useState(shift.start_time || '');
