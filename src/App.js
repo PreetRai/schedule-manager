@@ -12,7 +12,7 @@ import Signup from './components/Signup';
 import { AuthProvider } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import EmployeePortal from './components/EmployeePortal/EmployeePortal'; 
-
+import EmployeeLogin from './components/EmployeePortal/EmployeeLogin';
 function App() {
   return (
     <AuthProvider>
@@ -23,7 +23,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/employee-login" element={<EmployeeLogin />} />
             
+            <Route path="/employee-dashboard" element={<EmployeePortal />} />
             <Route path="/" element={
               <PrivateRoute component={Dashboard} requiredRole="admin" />
             } />

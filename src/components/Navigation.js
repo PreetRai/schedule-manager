@@ -25,6 +25,8 @@ function Navigation() {
           <>
             <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
             <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
+         <li>   <Link to="/employee-login">Employee Login</Link></li>
+         <li>   <Link to="/employee-dashboard">Employee Dashboard</Link></li>
           </>
    
       
