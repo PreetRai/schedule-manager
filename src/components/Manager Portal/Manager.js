@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { db } from "../firebase";
+import { useAuth } from "../../contexts/AuthContext";
+import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import StoreCalendarView from "./StoreCalenderView";
+import StoreCalendarView from "../StoreCalenderView";
 
 function Manager() {
     const { currentUser } = useAuth();

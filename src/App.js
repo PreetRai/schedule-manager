@@ -14,7 +14,7 @@ import PrivateRoute from './components/PrivateRoute';
 import EmployeePortal from './components/EmployeePortal/EmployeePortal'; 
 import EmployeeLogin from './components/EmployeePortal/EmployeeLogin';
 import { StoreColorProvider } from './contexts/StoreColorContext';
-import Manager from './components/Manager';
+import Manager from './components/Manager Portal/Manager';
 function App() {
   return (
     <AuthProvider>
