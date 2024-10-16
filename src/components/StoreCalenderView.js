@@ -2,18 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
+import { useStoreColors } from '../contexts/StoreColorContext';
 
-function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
+function StoreCalendarView({ storeId, stores, onShiftUpdate }) {
   const [shifts, setShifts] = useState([]);
+  const [storeEmployees, setStoreEmployees] = useState([]);
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
   const [showModal, setShowModal] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
+  const storeColors = useStoreColors();
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const storeColors = {
-    'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
-    'mgo6a1LkZ9PWQgczHZsT': 'bg-purple-200',
-  };
 
   useEffect(() => {
     fetchShifts();
@@ -32,6 +31,17 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
     const querySnapshot = await getDocs(q);
     const shiftList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     setShifts(shiftList);
+
+    // Extract unique employees from shifts
+    const uniqueEmployees = Array.from(new Set(shiftList.map(shift => shift.employee_id)))
+      .map(employeeId => {
+        const employeeShift = shiftList.find(shift => shift.employee_id === employeeId);
+        return {
+          id: employeeId,
+          name: employeeShift.employee_name
+        };
+      });
+    setStoreEmployees(uniqueEmployees);
   };
 
   const handleCellClick = (employee, day) => {
@@ -41,16 +51,28 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
     if (existingShift) {
       setCurrentShift(existingShift);
     } else {
+      const defaultTimes = getDefaultTimes(day);
       setCurrentShift({
         employee_id: employee.id,
         employee_name: employee.name,
         date: format(date, 'yyyy-MM-dd'),
-        start_time: '',
-        end_time: '',
+        start_time: defaultTimes.start_time,
+        end_time: defaultTimes.end_time,
         store_id: storeId
       });
     }
     setShowModal(true);
+  };
+
+  const getDefaultTimes = (day) => {
+    const store = stores.find(s => s.id === storeId);
+    if (store && store.hours && store.hours[day.toLowerCase()]) {
+      return {
+        start_time: store.hours[day.toLowerCase()].open,
+        end_time: store.hours[day.toLowerCase()].close
+      };
+    }
+    return { start_time: '', end_time: '' };
   };
 
   const handleSaveShift = async (shiftData) => {
@@ -103,8 +125,6 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
       }, 0);
   };
 
-  const storeEmployees = employees.filter(employee => employee.store_id === storeId);
-
   return (
     <div className="flex flex-col h-screen">
       <div className="flex justify-between items-center p-4">
@@ -140,7 +160,7 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
                       className={`border p-2 cursor-pointer ${shift ? storeColors[storeId] || '' : ''}`}
                       onClick={() => handleCellClick(employee, day)}
                     >
-                  {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : ''}
+                      {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : ''}
                     </td>
                   );
                 })}
@@ -163,110 +183,115 @@ function StoreCalendarView({ storeId, employees, stores, onShiftUpdate }) {
   );
 }
 
-function ShiftModal({ shift, onSave, onDelete, onClose,stores }) {
-    const [startTime, setStartTime] = useState(shift.start_time || '');
-    const [endTime, setEndTime] = useState(shift.end_time || '');
-    const [storeId, setStoreId] = useState(shift.store_id || '');
-  
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      const updatedShift = {
-        ...shift,
-        start_time: startTime,
-        end_time: endTime,
-        store_id: storeId,
-      };
-      onSave(updatedShift);
+function ShiftModal({ shift, onSave, onDelete, onClose, stores }) {
+  const [startTime, setStartTime] = useState(shift.start_time || '');
+  const [endTime, setEndTime] = useState(shift.end_time || '');
+  const [storeId, setStoreId] = useState(shift.store_id || '');
+
+  useEffect(() => {
+    if (storeId) {
+      const store = stores.find(s => s.id === storeId);
+      const defaultTimes = getDefaultTimes(store, shift.date);
+      setStartTime(defaultTimes.start_time);
+      setEndTime(defaultTimes.end_time);
+    }
+  }, [storeId, stores, shift.date]);
+
+  const getDefaultTimes = (store, date) => {
+    if (store && store.hours) {
+      const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      if (store.hours[dayOfWeek]) {
+        return {
+          start_time: store.hours[dayOfWeek].open,
+          end_time: store.hours[dayOfWeek].close
+        };
+      }
+    }
+    return { start_time: '', end_time: '' };
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const updatedShift = {
+      ...shift,
+      start_time: startTime,
+      end_time: endTime,
+      store_id: storeId,
     };
-  
-    return (
-      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-          <h3 className="text-lg font-medium leading-6 text-gray-900 mb-2">
-            {shift.id ? 'Edit Shift' : 'Add Shift'}
-          </h3>
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Employee: {shift.employee_name}
-              </label>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2">
-                Date: {shift.date}
-              </label>
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="start_time">
-                Start Time
-              </label>
-              <input
-                type="time"
-                id="start_time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="end_time">
-                End Time
-              </label>
-              <input
-                type="time"
-                id="end_time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="store">
-                Store
-              </label>
-              <select
-                id="store"
-                value={storeId}
-                onChange={(e) => setStoreId(e.target.value)}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
-              >
-                <option value="">Select Store</option>
-                {stores.map(store => (
-                  <option key={store.id} value={store.id}>{store.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="flex items-center justify-between">
-              <button
-                type="submit"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              >
-                Save
-              </button>
-              {shift.id && (
-                <button
-                  type="button"
-                  onClick={() => onDelete(shift.id)}
-                  className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Delete
-                </button>
-              )}
+    onSave(updatedShift);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 className="text-lg font-medium leading-6 text-gray-900 mb-2">
+          {shift.id ? 'Edit Shift' : 'Add Shift'}
+        </h3>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Employee: {shift.employee_name}
+            </label>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Date: {shift.date}
+            </label>
+          </div>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="start_time">
+              Start Time
+            </label>
+            <input
+              type="time"
+              id="start_time"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="end_time">
+              End Time
+            </label>
+            <input
+              type="time"
+              id="end_time"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              type="submit"
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Save
+            </button>
+            {shift.id && (
               <button
                 type="button"
-                onClick={onClose}
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                onClick={() => onDelete(shift.id)}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
-                Cancel
+                Delete
               </button>
-            </div>
-          </form>
-        </div>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
 export default StoreCalendarView;
