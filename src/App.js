@@ -14,6 +14,7 @@ import PrivateRoute from './components/PrivateRoute';
 import EmployeePortal from './components/EmployeePortal/EmployeePortal'; 
 import EmployeeLogin from './components/EmployeePortal/EmployeeLogin';
 import { StoreColorProvider } from './contexts/StoreColorContext';
+import Manager from './components/Manager';
 function App() {
   return (
     <AuthProvider>
@@ -39,6 +40,9 @@ function App() {
             } />
             <Route path="/calendar" element={
               <PrivateRoute component={CalendarView} requiredRole="admin" />
+            } />
+             <Route path="/manager" element={
+              <PrivateRoute component={Manager}  />
             } />
             <Route path="/analytics" element={
               <PrivateRoute component={AnalyticsDashboard} requiredRole="admin" />
