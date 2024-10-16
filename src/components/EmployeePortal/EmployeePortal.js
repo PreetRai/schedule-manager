@@ -3,6 +3,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
+import Legend from '../Legend';
+import { useStoreColors } from '../../contexts/StoreColorContext';
 
 function EmployeePortal() {
   const { currentUser } = useAuth();
@@ -14,17 +16,16 @@ function EmployeePortal() {
   const [error, setError] = useState(null);
   const [employeeData, setEmployeeData] = useState(null);
   const [stores, setStores] = useState([]);
+  const storeColors = useStoreColors();
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const storeColors = {
-    'QJok5AgOOCfwXPPgdJWY': 'bg-green-100',
-    'mgo6a1LkZ9PWQgczHZsT': 'bg-purple-200',
-    // Add more stores and their corresponding colors here
-  };
+
   useEffect(() => {
     fetchStores();
+    fetchEmployeeData();
     fetchShifts();
   }, [currentUser, weekStart]);
+
   const fetchStores = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'stores'));
@@ -35,11 +36,6 @@ function EmployeePortal() {
       console.error(err);
     }
   };
-
-  useEffect(() => {
-    fetchEmployeeData();
-    fetchShifts();
-  }, [currentUser, weekStart]);
 
   const fetchEmployeeData = async () => {
     try {
@@ -134,6 +130,8 @@ function EmployeePortal() {
           </div>
         )}
 
+        <Legend title={'Legend'}stores={stores} />
+
         <div className="flex justify-between items-center mb-4">
           <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
           <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
@@ -150,7 +148,7 @@ function EmployeePortal() {
           </thead>
           <tbody>
             <tr>
-            {days.map(day => {
+              {days.map(day => {
                 const shift = getShiftForDay(day);
                 return (
                   <td key={day} className={`border p-2 text-center ${shift ? storeColors[shift.store_id] || '' : ''}`}>
