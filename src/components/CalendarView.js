@@ -217,31 +217,36 @@ function CalendarView() {
 
                         <div className="flex flex-col h-screen">
 
-                            <div className="flex flex-1 overflow-hidden">
-                                <div className="w-1/4 p-4 border-r overflow-y-auto">
-                                    <h2 className="text-xl font-bold mb-4">Employees</h2>
-                                    <Legend stores={stores} title={"Stores"}/>
-                                    <ul>
-                                        {
-                                            employees.map(employee => {
-                                                const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
-
-                                                return (
-                                                    <li
-                                                        key={employee.id}
-                                                        className={`p-2 cursor-pointer ${selectedEmployee
-                                                            ?.id === employee.id
-                                                                ? 'bg-blue-100'
-                                                                : ''}`}
-                                                        onClick={() => setSelectedEmployee(employee)}>
-                                                        {employee.name}
-                                                        - ${earnings.toFixed(2)}
-                                                    </li>
-                                                );
-                                            })
-                                        }
-                                    </ul>
-                                </div>
+                            <div className="flex flex-1 overflow-hidden ">
+                            <div className="w-1/4 p-4 border-r overflow-y-auto">
+  <Legend stores={stores} title="Stores" />
+  <div className="mt-6">
+    <h2 className="text-xl font-bold mb-4">Employees</h2>
+    <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
+      <div className="col-span-2">Name</div>
+      <div className="text-right">Hours</div>
+      <div className="text-right">Earnings</div>
+    </div>
+    <ul className="space-y-2">
+      {employees.map(employee => {
+        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
+        return (
+          <li
+            key={employee.id}
+            className={`grid grid-cols-4 gap-2 p-2 cursor-pointer rounded ${
+              selectedEmployee?.id === employee.id ? 'bg-blue-100' : 'hover:bg-gray-100'
+            }`}
+            onClick={() => setSelectedEmployee(employee)}
+          >
+            <div className="col-span-2 truncate">{employee.name}</div>
+            <div className="text-right">{hours.toFixed(2)}</div>
+            <div className="text-right">${earnings.toFixed(2)}</div>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</div>
 
                                 <div className="w-3/4 p-4 overflow-x-auto">
                                     <div className="flex justify-between items-center p-4">
