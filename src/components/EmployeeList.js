@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } from 'firebase/firestore';
+import { getAuth, deleteUser, sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
   const [stores, setStores] = useState([]);
   const [newEmployee, setNewEmployee] = useState({
-    claimed:false,
+    claimed: false,
     name: '',
     email: '',
     phone: '',
@@ -81,7 +82,7 @@ function EmployeeList() {
         setSuccessMessage("Employee added successfully!");
       }
       setNewEmployee({
-        claimed:false,
+        claimed: false,
         name: '',
         email: '',
         phone: '',
@@ -101,16 +102,45 @@ function EmployeeList() {
     setEditingEmployee(employee);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
+  const handleDelete = async (id, email) => {
+    if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
       try {
+        // Delete from Firestore
         await deleteDoc(doc(db, 'employees', id));
+
+        // Delete from Firebase Auth
+        const auth = getAuth();
+        const userQuery = query(collection(db, 'users'), where("email", "==", email));
+        const userSnapshot = await getDocs(userQuery);
+        
+        if (!userSnapshot.empty) {
+          const userId = userSnapshot.docs[0].id;
+          const user = auth.currentUser;
+          
+          if (user && user.uid === userId) {
+            await deleteUser(user);
+          } else {
+            console.warn("User not found in Firebase Auth or not currently logged in.");
+          }
+        }
+
         setSuccessMessage("Employee deleted successfully!");
         fetchEmployees();
       } catch (err) {
         console.error("Error deleting employee:", err);
         setError("Failed to delete employee. Please try again.");
       }
+    }
+  };
+
+  const handleSendPasswordResetEmail = async (email) => {
+    try {
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email);
+      setSuccessMessage("Password reset email sent successfully!");
+    } catch (err) {
+      console.error("Error sending password reset email:", err);
+      setError("Failed to send password reset email. Please try again.");
     }
   };
 
@@ -143,7 +173,8 @@ function EmployeeList() {
                   <td>{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</td>
                   <td>
                     <button onClick={() => handleEdit(employee)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(employee.id)} className="text-red-500">Delete</button>
+                    <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500 mr-2">Delete</button>
+                    <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
                   </td>
                 </tr>
               ))}
