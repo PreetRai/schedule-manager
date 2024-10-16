@@ -5,7 +5,7 @@ function Legend({ stores,title }) {
   const storeColors = useStoreColors();
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md m-5">
+    <div className="bg-white p-4 rounded-lg shadow-md m-1">
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <div className="grid grid-cols-2 gap-2">
         {stores.map(store => (

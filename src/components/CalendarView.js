@@ -190,7 +190,7 @@ function CalendarView() {
         return {hours: totalHours, earnings: totalEarnings};
     };
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen bg-gray-100">
             <div className="flex justify-between items-center p-4">
                 <select
                     value={selectedStore || ''}
@@ -215,97 +215,163 @@ function CalendarView() {
                     )
                     : (
 
-                        <div className="flex flex-col h-screen">
+                        <div className="flex flex-col h-screen bg-gray-100">
 
                             <div className="flex flex-1 overflow-hidden ">
-                            <div className="w-1/4 p-4 border-r overflow-y-auto">
-  <Legend stores={stores} title="Stores" />
-  <div className="mt-6">
-    <h2 className="text-xl font-bold mb-4">Employees</h2>
-    <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
-      <div className="col-span-2">Name</div>
-      <div className="text-right">Hours</div>
-      <div className="text-right">Earnings</div>
-    </div>
-    <ul className="space-y-2">
-      {employees.map(employee => {
-        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
-        return (
-          <li
-            key={employee.id}
-            className="grid grid-cols-4 gap-2 p-2 cursor-pointer rounded "
-            onClick={() => setSelectedEmployee(employee)}
-          >
-            <div className="col-span-2 truncate">{employee.name}</div>
-            <div className="text-right">{hours.toFixed(2)}</div>
-            <div className="text-right">${earnings.toFixed(2)}</div>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-</div>
-
-                                <div className="w-3/4 p-4 overflow-x-auto">
-                                    <div className="flex justify-between items-center p-4">
-                                        <button
-                                            onClick={handlePreviousWeek}
-                                            className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
-                                        <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')}
-                                            - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
-                                        <button
-                                            onClick={handleNextWeek}
-                                            className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
+                                <div className="w-1/4 p-4 border-r overflow-y-auto">
+                                    <Legend stores={stores} title="Stores"/>
+                                    <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full">
+                                        <div className="px-4 py-5 sm:p-6">
+                                            <h2 className="text-xl font-bold mb-4">Employees</h2>
+                                            <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
+                                                <div className="col-span-2">Name</div>
+                                                <div className="text-right">Hours</div>
+                                                <div className="text-right">Earnings</div>
+                                            </div>
+                                            <ul className="space-y-2">
+                                                {
+                                                    employees.map(employee => {
+                                                        const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
+                                                        return (
+                                                            <li
+                                                                key={employee.id}
+                                                                className="grid grid-cols-4 gap-2 p-2 cursor-pointer rounded "
+                                                                onClick={() => setSelectedEmployee(employee)}>
+                                                                <div className="col-span-2 truncate">{employee.name}</div>
+                                                                <div className="text-right">{hours.toFixed(2)}</div>
+                                                                <div className="text-right">${earnings.toFixed(2)}</div>
+                                                            </li>
+                                                        );
+                                                    })
+                                                }
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <table className="w-full border-collapse">
-                                        <thead>
-                                            <tr>
-                                                <th className="border p-2">Employee</th>
-                                                {days.map(day => (<th key={day} className="border p-2">{day}</th>))}
-                                                <th className="border p-2">Total Hours</th>
-                                                <th className="border p-2">Total Earnings</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {
-                                                employees.map(employee => {
-                                                    const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
-                                                    return (
-                                                        <tr key={employee.id}>
-                                                            <td className="border p-2">{employee.name}</td>
-                                                            {
-                                                                days.map(day => {
-                                                                    const shift = getShiftForEmployeeAndDay(employee.id, day);
-                                                                    const formatTime12Hour = (time) => {
-                                                                        if (!time) 
-                                                                            return '';
-                                                                        const [hours, minutes] = time.split(':');
-                                                                        return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
-                                                                    };
-                                                                    return (
-                                                                        <td
-                                                                            key={day}
-                                                                            className={`border p-2 cursor-pointer ${shift
-                                                                                ? storeColors[shift.store_id] || ''
-                                                                                : ''}`}
-                                                                            onClick={() => handleCellClick(employee, day)}>
-                                                                            {
-                                                                                shift
-                                                                                    ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}`
-                                                                                    : ''
-                                                                            }
-                                                                        </td>
-                                                                    );
-                                                                })
-                                                            }
-                                                            <td className="border p-2">{hours.toFixed(2)}</td>
-                                                            <td className="border p-2">${earnings.toFixed(2)}</td>
-                                                        </tr>
-                                                    );
-                                                })
-                                            }
-                                        </tbody>
-                                    </table>
+                                </div>
+
+                                <div
+                                    className="w-3/4  overflow-x-auto  overflow-hidden  rounded-lg col-span-full m-5 ">
+                                    <div className="px-4 py-5 sm:p-6">
+                                        <div
+                                            className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
+                                            <div className="text-center">
+                                                <h1
+                                                    onClick={() => setWeekStart(startOfWeek(new Date()))}
+                                                    className="mt-2 text-sm transition duration-300 ease-in-out">
+                                                    Current Week
+                                                </h1>
+                                                <h2 className="text-xl font-bold text-gray-800">
+                                                    {format(weekStart, 'MMMM d, yyyy')}
+                                                    - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}
+                                                </h2>
+
+                                            </div>
+                                            <div className='flex gap-5'>
+                                                <button
+                                                    onClick={handlePreviousWeek}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5 mr-2"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor">
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                                            clipRule="evenodd"/>
+                                                    </svg>
+                                                    Previous Week
+                                                </button>
+
+                                                <button
+                                                    onClick={handleNextWeek}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                    Next Week
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className="h-5 w-5 ml-2"
+                                                        viewBox="0 0 20 20"
+                                                        fill="currentColor">
+                                                        <path
+                                                            fillRule="evenodd"
+                                                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                            clipRule="evenodd"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="overflow-x-auto shadow-md sm:rounded-lg">
+                                            <table className="min-w-full divide-y divide-gray-200">
+                                                <thead className="bg-gray-50">
+                                                    <tr>
+                                                        <th
+                                                            scope="col"
+                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 ">Employee</th>
+                                                        {
+                                                            days.map(day => (
+                                                                <th
+                                                                    key={day}
+                                                                    scope="col"
+                                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
+                                                            ))
+                                                        }
+                                                        <th
+                                                            scope="col"
+                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Hours</th>
+                                                        <th
+                                                            scope="col"
+                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Earnings</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="bg-white divide-y divide-gray-200">
+                                                    {
+                                                        employees.map((employee, index) => {
+                                                            const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
+                                                            return (
+                                                                <tr
+                                                                    key={employee.id}
+                                                                    className={index % 2 === 0
+                                                                        ? 'bg-white'
+                                                                        : 'bg-gray-50'}>
+                                                                    <td
+                                                                        className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit ">{employee.name}</td>
+                                                                    {
+                                                                        days.map(day => {
+                                                                            const shift = getShiftForEmployeeAndDay(employee.id, day);
+                                                                            const formatTime12Hour = (time) => {
+                                                                                if (!time) 
+                                                                                    return '';
+                                                                                const [hours, minutes] = time.split(':');
+                                                                                return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+                                                                            };
+                                                                            return (
+                                                                                <td key={day} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                                    <div
+                                                                                        className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${
+                                                                                        shift
+                                                                                            ? storeColors[shift.store_id] || ''
+                                                                                            : 'hover:bg-gray-100'}`}
+                                                                                        onClick={() => handleCellClick(employee, day)}>
+                                                                                        {
+                                                                                            shift
+                                                                                                ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}`
+                                                                                                : <span className="text-gray-400">+</span>
+                                                                                        }
+                                                                                    </div>
+                                                                                </td>
+                                                                            );
+                                                                        })
+                                                                    }
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">{hours.toFixed(2)}</td>
+                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">${earnings.toFixed(2)}</td>
+                                                                </tr>
+                                                            );
+                                                        })
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </ div>
                                 </div>
                             </div>
                             {
