@@ -179,8 +179,10 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     return (
         <div className="flex flex-col h-screen bg-gray-100">
             <div className="flex flex-1 overflow-hidden">
-                <div className="w-1/4 p-4 border-r overflow-y-auto">
-                    <Legend stores={stores} title={"Stores"}/>
+            <div className="w-1/4 p-4 border-r overflow-y-auto">
+            <Legend stores={stores} title={"Stores"}/>
+                <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full">
+                    <div className="px-4 py-5 sm:p-6">
                     <h2 className="text-xl font-bold mb-4">Employees</h2>
                     <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
                         <div className="col-span-2">Name</div>
@@ -209,6 +211,8 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                             })
                         }
                     </ul>
+                    </div>
+                    </div>
                 </div>
 
                 <div
