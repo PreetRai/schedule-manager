@@ -38,41 +38,50 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
         'Saturday',
         'Sunday'
     ];
-
     useEffect(() => {
         fetchShifts();
     }, [weekStart, storeId]);
 
-    const fetchShifts = async () => {
-        const start = format(weekStart, 'yyyy-MM-dd');
-        const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
-        const shiftsRef = collection(db, 'shifts');
-        const q = query(
-            shiftsRef,
-            where("store_id", "==", storeId),
-            where("date", ">=", start),
-            where("date", "<=", end)
-        );
+    const fetchDefaultEmployees = async () => {
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, where("store_id", "==", storeId));
         const querySnapshot = await getDocs(q);
-        const shiftList = querySnapshot
-            .docs
-            .map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        setShifts(shiftList);
-
-        // Extract unique employees from shifts
-        const uniqueEmployees = Array
-            .from(
-                new Set(shiftList.map(shift => shift.employee_id))
-            )
-            .map(employeeId => {
-                const employeeShift = shiftList.find(shift => shift.employee_id === employeeId);
-                return {id: employeeId, name: employeeShift.employee_name};
-            });
-        setStoreEmployees(uniqueEmployees);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     };
+    const fetchShifts = async () => {
+    const start = format(weekStart, 'yyyy-MM-dd');
+    const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
+    const shiftsRef = collection(db, 'shifts');
+    const q = query(
+        shiftsRef,
+        where("store_id", "==", storeId),
+        where("date", ">=", start),
+        where("date", "<=", end)
+    );
+    const querySnapshot = await getDocs(q);
+    const shiftList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+    setShifts(shiftList);
+
+    // Fetch default employees
+    const defaultEmployees = await fetchDefaultEmployees();
+
+    // Extract unique employees from shifts
+    const shiftEmployees = Array.from(new Set(shiftList.map(shift => shift.employee_id)))
+        .map(employeeId => {
+            const employeeShift = shiftList.find(shift => shift.employee_id === employeeId);
+            return { id: employeeId, name: employeeShift.employee_name };
+        });
+
+    // Combine shift employees and default employees, removing duplicates
+    const combinedEmployees = [...defaultEmployees, ...shiftEmployees];
+    const uniqueEmployees = Array.from(new Set(combinedEmployees.map(e => e.id)))
+        .map(id => combinedEmployees.find(e => e.id === id));
+
+    setStoreEmployees(uniqueEmployees);
+};
 
     const handleCellClick = (employee, day) => {
         const date = addDays(weekStart, days.indexOf(day));
