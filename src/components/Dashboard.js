@@ -43,14 +43,38 @@ function Dashboard() {
     end: endOfWeek(currentWeek)
   });
 
+  const renderShifts = (dayShifts) => {
+    // Group shifts by store
+    const shiftsByStore = dayShifts.reduce((acc, shift) => {
+      if (!acc[shift.store_id]) {
+        acc[shift.store_id] = [];
+      }
+      acc[shift.store_id].push(shift);
+      return acc;
+    }, {});
+
+    // Sort stores by their ID to ensure consistent ordering
+    const sortedStoreIds = Object.keys(shiftsByStore).sort();
+
+    return sortedStoreIds.map(storeId => (
+      <div key={storeId} className={`${storeColors[storeId] || ''} p-1 rounded mb-1`}>
+        {shiftsByStore[storeId].map(shift => (
+          <div key={shift.id}>
+            {shift.employee_name}: {shift.start_time} - {shift.end_time}
+          </div>
+        ))}
+      </div>
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         </div>
       </header>
-      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="py-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Stores Summary */}
           <Legend stores={stores} title={"Stores"} />
@@ -90,14 +114,7 @@ function Dashboard() {
                         const dayShifts = shifts.filter(shift => shift.date === format(day, 'yyyy-MM-dd'));
                         return (
                           <td key={day} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {dayShifts.map(shift => (
-                              <div 
-                                key={shift.id} 
-                                className={`${storeColors[shift.store_id] || ''} p-1 rounded mb-1`}
-                              >
-                                {shift.employee_name}: {shift.start_time} - {shift.end_time}
-                              </div>
-                            ))}
+                            {renderShifts(dayShifts)}
                           </td>
                         );
                       })}
