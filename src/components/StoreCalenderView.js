@@ -3,6 +3,7 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } 
 import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
 import { useStoreColors } from '../contexts/StoreColorContext';
+import Legend from './Legend';
 
 function StoreCalendarView({ storeId, stores, onShiftUpdate }) {
   const [shifts, setShifts] = useState([]);
@@ -124,15 +125,58 @@ function StoreCalendarView({ storeId, stores, onShiftUpdate }) {
         return total + hours;
       }, 0);
   };
+  const calculateTotalHoursAndEarnings = (employeeId) => {
+    const employee = storeEmployees.find(e => e.id === employeeId);
+    const hourlyRate = employee
+        ?.pay || 0;
 
+    const totalHours = shifts
+        .filter(shift => shift.employee_id === employeeId)
+        .reduce((total, shift) => {
+            const start = parse(shift.start_time, 'HH:mm', new Date());
+            const end = parse(shift.end_time, 'HH:mm', new Date());
+            const hours = (end - start) / (1000 * 60 * 60);
+            return total + hours;
+        }, 0);
+
+    const totalEarnings = totalHours * hourlyRate;
+
+    return {hours: totalHours, earnings: totalEarnings};
+};
   return (
     <div className="flex flex-col h-screen">
+         <div className="flex flex-1 overflow-hidden">
+       <div className="w-1/4 p-4 border-r overflow-y-auto">
+                                    <h2 className="text-xl font-bold mb-4">Employees</h2>
+                                    <Legend stores={stores} title={"Stores"}/>
+                                    <ul>
+                                        {
+                                            storeEmployees.map(employee => {
+                                                const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
+
+                                                return (
+                                                    <li
+                                                        key={employee.id}
+                                                        className={`p-2 cursor-pointer ${storeEmployees
+                                                            ?.id === employee.id
+                                                                ? 'bg-blue-100'
+                                                                : ''}`}
+                                                        onClick={() => setStoreEmployees(employee)}>
+                                                        {employee.name}
+                                                        - ${earnings.toFixed(2)}
+                                                    </li>
+                                                );
+                                            })
+                                        }
+                                    </ul>
+                                </div>
+      
+      <div className="flex-1 overflow-x-auto">
       <div className="flex justify-between items-center p-4">
         <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
         <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
         <button onClick={handleNextWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
       </div>
-      <div className="flex-1 overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>
@@ -179,6 +223,7 @@ function StoreCalendarView({ storeId, stores, onShiftUpdate }) {
           stores={[stores.find(store => store.id === storeId)]}
         />
       )}
+    </div>
     </div>
   );
 }
