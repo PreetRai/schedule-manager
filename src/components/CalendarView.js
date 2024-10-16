@@ -250,8 +250,8 @@ function CalendarView() {
                                 </div>
 
                                 <div
-                                    className="w-3/4  overflow-x-auto  overflow-hidden  rounded-lg col-span-full m-5 ">
-                                    <div className="px-4 py-5 sm:p-6">
+                                    className="w-3/4  overflow-x-auto  overflow-hidden  rounded-lg col-span-full ">
+                                    <div className="p-4 ">
                                         <div
                                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                                             <div className="text-center">
