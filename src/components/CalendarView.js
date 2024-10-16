@@ -195,7 +195,7 @@ function CalendarView() {
                 <select
                     value={selectedStore || ''}
                     onChange={(e) => setSelectedStore(e.target.value)}
-                    className="p-2 border rounded">
+                    className="shadow rounded p-4">
                     <option value="">All Stores</option>
                     {
                         stores.map(
