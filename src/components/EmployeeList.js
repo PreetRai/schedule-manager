@@ -108,21 +108,6 @@ function EmployeeList() {
         // Delete from Firestore
         await deleteDoc(doc(db, 'employees', id));
 
-        // Delete from Firebase Auth
-        const auth = getAuth();
-        const userQuery = query(collection(db, 'users'), where("email", "==", email));
-        const userSnapshot = await getDocs(userQuery);
-        
-        if (!userSnapshot.empty) {
-          const userId = userSnapshot.docs[0].id;
-          const user = auth.currentUser;
-          
-          if (user && user.uid === userId) {
-            await deleteUser(user);
-          } else {
-            console.warn("User not found in Firebase Auth or not currently logged in.");
-          }
-        }
 
         setSuccessMessage("Employee deleted successfully!");
         fetchEmployees();
@@ -145,7 +130,7 @@ function EmployeeList() {
   };
 
   if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return <div className="text-center mt-8">Loading...</div>; 
   }
 
   return (
