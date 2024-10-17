@@ -1,27 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } from 'firebase/firestore';
+import { getAuth, deleteUser, sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
   const [stores, setStores] = useState([]);
   const [newEmployee, setNewEmployee] = useState({
+    claimed: false,
     name: '',
     email: '',
     phone: '',
     role: '',
-    pay: '',
-    store_id: '',
-    claimed: false
+    pay: 0,
+    store_id: ''
   });
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const roles = ['Driver', 'Field Worker', 'Admin', 'Manager'];
-  const auth = getAuth();
+  const roles = ['driver', 'employee', 'admin', 'manager'];
 
   useEffect(() => {
     fetchEmployees();
@@ -36,7 +35,6 @@ function EmployeeList() {
       const employeeList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEmployees(employeeList);
     } catch (err) {
-      console.error("Error fetching employees:", err);
       setError("Failed to fetch employees. Please try again.");
     } finally {
       setLoading(false);
@@ -94,13 +92,13 @@ function EmployeeList() {
         setSuccessMessage("Employee added successfully!");
       }
       setNewEmployee({
+        claimed: false,
         name: '',
         email: '',
         phone: '',
         role: '',
-        pay: '',
-        store_id: '',
-        claimed: false
+        pay: 0,
+        store_id: ''
       });
       setEditingEmployee(null);
       fetchEmployees();
@@ -114,10 +112,13 @@ function EmployeeList() {
     setEditingEmployee(employee);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this employee?")) {
+  const handleDelete = async (id, email) => {
+    if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
       try {
+        // Delete from Firestore
         await deleteDoc(doc(db, 'employees', id));
+
+
         setSuccessMessage("Employee deleted successfully!");
         fetchEmployees();
       } catch (err) {
@@ -127,8 +128,19 @@ function EmployeeList() {
     }
   };
 
+  const handleSendPasswordResetEmail = async (email) => {
+    try {
+      const auth = getAuth();
+      await sendPasswordResetEmail(auth, email);
+      setSuccessMessage("Password reset email sent successfully!");
+    } catch (err) {
+      console.error("Error sending password reset email:", err);
+      setError("Failed to send password reset email. Please try again.");
+    }
+  };
+
   if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
+    return <div className="text-center mt-8">Loading...</div>; 
   }
 
   return (
@@ -156,7 +168,8 @@ function EmployeeList() {
                   <td>{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</td>
                   <td>
                     <button onClick={() => handleEdit(employee)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(employee.id)} className="text-red-500">Delete</button>
+                    <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500 mr-2">Delete</button>
+                    <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
                   </td>
                 </tr>
               ))}
@@ -210,6 +223,15 @@ function EmployeeList() {
                 <option key={store.id} value={store.id}>{store.name}</option>
               ))}
             </select>
+        
+            <input
+              type="email"
+              name="email"
+              value={editingEmployee ? editingEmployee.email : newEmployee.email}
+              onChange={handleInputChange}
+              placeholder="Email (Optional)"
+              className="w-full px-3 py-2 border rounded-md"
+            />
             <input
               type="tel"
               name="phone"

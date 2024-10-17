@@ -1,61 +1,93 @@
-import React, { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import React, { useEffect, useState } from 'react';
+import { auth, db } from '../../firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
-function Login() {
+function EmployeeLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
- 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, redirect to employee-portal
+        navigate('/employee-portal');
+      } else {
+        // No user is signed in, allow login
+        setLoading(false);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
 
-      // Fetch user's role from Firestore
-      const userDoc = await getDoc(doc(db, 'employees', user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
-        if (userData.role === 'pending') {
-          setError('Your account is pending approval. Please contact an administrator.');
-          await auth.signOut();
-        } else {
-          // Role is set, proceed with login
-          navigate('/');
-        }
-      } else {
-        setError('User data not found. Please contact an administrator.');
-        await auth.signOut();
+    try {
+      // Check if the employee exists in the database
+      const employeesRef = collection(db, 'employees');
+      const q = query(employeesRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setError("No employee account found with this email.");
+        return;
       }
+
+      const employeeDoc = querySnapshot.docs[0];
+      const employeeData = employeeDoc.data();
+
+      if (employeeData.claimed) {
+        // If the account is already claimed, just sign in
+        await signInWithEmailAndPassword(auth, email, password) &&  navigate('/employee-dashboard');
+      
+      } else {
+        // If the account is not claimed, create a new auth account
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        
+        // Create a new document with the UID as the document ID
+        await setDoc(doc(db, 'employees', userCredential.user.uid), {
+          ...employeeData,
+          claimed: true,
+          id:userCredential.user.uid
+        });
+
+        // Delete the old document
+        await deleteDoc(doc(db, 'employees', employeeDoc.id));
+      }
+
+      // Redirect to the employee portal or dashboard
+      navigate('/employee-portal');
     } catch (error) {
-      console.error('Error logging in:', error);
       setError(error.message);
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>; // Or any loading indicator
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Employee Account Claim
+          </h2>
+        </div>
         <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          <input type="hidden" name="remember" value="true" />
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
               <label htmlFor="email-address" className="sr-only">Email address</label>
-              <input 
+              <input
                 id="email-address"
                 name="email"
                 type="email"
@@ -83,12 +115,14 @@ function Login() {
             </div>
           </div>
 
+          {error && <div className="text-red-500 text-sm">{error}</div>}
+
           <div>
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              Sign in
+              Claim Account
             </button>
           </div>
         </form>
@@ -97,4 +131,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default EmployeeLogin;

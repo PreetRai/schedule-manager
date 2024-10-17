@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth } from '../firebase';
-import { signOut } from 'firebase/auth';
-import { useRole } from '../hooks/useRole';
+import { auth, db } from '../firebase';
+import { signOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -11,32 +11,53 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
-  const role = useRole();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setCurrentUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userData = await fetchUserData(user.uid);
+        setCurrentUser(userData);
+        setUserRole(userData.role);
+      } else {
+        setCurrentUser(null);
+        setUserRole(null);
+      }
       setLoading(false);
     });
 
     return unsubscribe;
   }, []);
 
-  // Add this logout function
+  const fetchUserData = async (uid) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'employees', uid));
+      if (userDoc.exists()) {
+        return { uid, ...userDoc.data() };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  };
+
   const logout = async () => {
     try {
       await signOut(auth);
+      setCurrentUser(null);
+      setUserRole(null);
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error("Error signing out:", error);
     }
   };
 
   const value = {
     currentUser,
-    role,
+    userRole,
     loading,
-    logout // Add logout to the context value
+    logout
   };
 
   return (
