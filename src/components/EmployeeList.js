@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } from 'firebase/firestore';
-import { getAuth, deleteUser, sendPasswordResetEmail } from 'firebase/auth';
+import { getAuth,  sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
 function EmployeeList() {
@@ -78,14 +78,10 @@ function EmployeeList() {
         await updateDoc(doc(db, 'employees', editingEmployee.id), employeeData);
         setSuccessMessage("Employee updated successfully!");
       } else {
-        // Create a new user account
-        const userCredential = await createUserWithEmailAndPassword(auth, employeeData.email, 'defaultPassword');
-        const user = userCredential.user;
 
         // Add the employee to Firestore with the UID as the document ID
         await addDoc(collection(db, 'employees'), {
           ...employeeData,
-          uid: user.uid,
           claimed: false
         });
 
@@ -115,7 +111,6 @@ function EmployeeList() {
   const handleDelete = async (id, email) => {
     if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
       try {
-        // Delete from Firestore
         await deleteDoc(doc(db, 'employees', id));
 
 
@@ -224,14 +219,7 @@ function EmployeeList() {
               ))}
             </select>
         
-            <input
-              type="email"
-              name="email"
-              value={editingEmployee ? editingEmployee.email : newEmployee.email}
-              onChange={handleInputChange}
-              placeholder="Email (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
+       
             <input
               type="tel"
               name="phone"
