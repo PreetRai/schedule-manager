@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 function StoreManager() {
   const [stores, setStores] = useState([]);
-  const [newStore, setNewStore] = useState({
-    name: '',
-    location: '',
-    hours: {
-      monday: { open: '', close: '' },
-      tuesday: { open: '', close: '' },
-      wednesday: { open: '', close: '' },
-      thursday: { open: '', close: '' },
-      friday: { open: '', close: '' },
-      saturday: { open: '', close: '' },
-      sunday: { open: '', close: '' },
-    }
-  });
   const [editingStore, setEditingStore] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+  const defaultHours = days.reduce((acc, day) => {
+    acc[day] = { open: '09:00', close: '17:00' };
+    return acc;
+  }, {});
+
+  const [newStore, setNewStore] = useState({
+    name: '',
+    location: '',
+    hours: defaultHours
+  });
 
   useEffect(() => {
     fetchStores();
@@ -29,14 +27,12 @@ function StoreManager() {
 
   const fetchStores = async () => {
     setLoading(true);
-    setError(null);
     try {
       const querySnapshot = await getDocs(collection(db, 'stores'));
       const storeList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setStores(storeList);
     } catch (err) {
-      setError('An error occurred while fetching stores. Please try again.');
-      console.error('Error fetching stores:', err);
+      setError("Failed to fetch stores. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -75,40 +71,18 @@ function StoreManager() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-  
-    const storeData = editingStore || newStore;
-  
-    // Validation
-    if (!storeData.name.trim() || !storeData.location.trim()) {
-      setError('Store name and location are required.');
-      setLoading(false);
-      return;
-    }
-  
+
     try {
       if (editingStore) {
         await updateDoc(doc(db, 'stores', editingStore.id), editingStore);
-        setEditingStore(null);
       } else {
         await addDoc(collection(db, 'stores'), newStore);
-        setNewStore({
-          name: '',
-          location: '',
-          hours: {
-            monday: { open: '', close: '' },
-            tuesday: { open: '', close: '' },
-            wednesday: { open: '', close: '' },
-            thursday: { open: '', close: '' },
-            friday: { open: '', close: '' },
-            saturday: { open: '', close: '' },
-            sunday: { open: '', close: '' },
-          }
-        });
       }
-      await fetchStores();
+      fetchStores();
+      setEditingStore(null);
+      setNewStore({ name: '', location: '', hours: defaultHours });
     } catch (err) {
-      setError('An error occurred while saving the store. Please try again.');
-      console.error('Error saving store:', err);
+      setError("Failed to save store. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -119,54 +93,48 @@ function StoreManager() {
   };
 
   const handleDelete = async (id) => {
-    const deleteConfirm = window.confirm("Are you sure you want to delete this store? This action cannot be undone.");
-    if (deleteConfirm) {
-      setLoading(true);
-      setError(null);
+    if (window.confirm("Are you sure you want to delete this store?")) {
       try {
         await deleteDoc(doc(db, 'stores', id));
-        await fetchStores();
+        fetchStores();
       } catch (err) {
-        setError('An error occurred while deleting the store. Please try again.');
-        console.error('Error deleting store:', err);
-      } finally {
-        setLoading(false);
+        setError("Failed to delete store. Please try again.");
       }
     }
   };
 
-  if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
-      <div className="relative py-3 sm:max-w-xl sm:mx-auto">
-        <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
-          <h1 className="text-2xl font-semibold mb-4">Store Manager</h1>
-          {error && <div className="mb-4 text-red-600">{error}</div>}
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Current Stores</h2>
+    <div className="min-h-screen bg-gray-100 px-4 py-6 flex flex-col sm:py-12 ">
+      <div className="px-4 py-6 sm:px-0">
+        <h1 className="text-2xl font-semibold mb-4">Store Manager</h1>
+        {error && <div className="mb-4 text-red-600">{error}</div>}
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Store List */}
+          <div className="w-full md:w-1/2 bg-white shadow-lg rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Current Stores</h2>
             {stores.length === 0 ? (
               <p>No stores found.</p>
             ) : (
-              <ul>
+              <ul className="space-y-2">
                 {stores.map(store => (
-                  <li key={store.id} className="mb-2 flex justify-between items-center">
+                  <li key={store.id} className="flex justify-between items-center border-b pb-2">
                     <span>
-                      Name: {store.name} | Location: {store.location}
+                      {store.name} - {store.location}
                     </span>
                     <div>
-                      <button onClick={() => handleEdit(store)} className="bg-blue-500 text-white px-2 py-1 rounded mr-2">Edit</button>
-                      <button onClick={() => handleDelete(store.id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                      <button onClick={() => handleEdit(store)} className="text-blue-500 mr-2">Edit</button>
+                      <button onClick={() => handleDelete(store.id)} className="text-red-500">Delete</button>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+
+          {/* Add/Edit Store Form */}
+          <div className="w-full md:w-1/2 bg-white shadow-lg rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">{editingStore ? 'Edit Store' : 'Add Store'}</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
                 name="name"
@@ -176,8 +144,6 @@ function StoreManager() {
                 className="w-full px-3 py-2 border rounded-md"
                 required
               />
-            </div>
-            <div>
               <input
                 type="text"
                 name="location"
@@ -187,32 +153,41 @@ function StoreManager() {
                 className="w-full px-3 py-2 border rounded-md"
                 required
               />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Store Hours</h3>
-              {days.map(day => (
-                <div key={day} className="flex items-center mb-2">
-                  <span className="w-24 capitalize">{day}:</span>
-                  <input
-                    type="time"
-                    value={editingStore ? editingStore.hours[day].open : newStore.hours[day].open}
-                    onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
-                    className="px-2 py-1 border rounded-md mr-2"
-                  />
-                  <span>to</span>
-                  <input
-                    type="time"
-                    value={editingStore ? editingStore.hours[day].close : newStore.hours[day].close}
-                    onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
-                    className="px-2 py-1 border rounded-md ml-2"
-                  />
-                </div>
-              ))}
-            </div>
-            <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-blue-300">
-              {loading ? 'Processing...' : (editingStore ? 'Update Store' : 'Add Store')}
-            </button>
-          </form>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Store Hours</h3>
+                {days.map(day => (
+                  <div key={day} className="flex flex-wrap items-center mb-2">
+                    <span className="w-full sm:w-24 capitalize mb-1 sm:mb-0">{day}:</span>
+                    <input
+                      type="time"
+                      value={editingStore ? editingStore.hours[day].open : newStore.hours[day].open}
+                      onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
+                      className="px-2 py-1 border rounded-md mr-2 mb-1 sm:mb-0"
+                    />
+                    <span className="mx-2">to</span>
+                    <input
+                      type="time"
+                      value={editingStore ? editingStore.hours[day].close : newStore.hours[day].close}
+                      onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
+                      className="px-2 py-1 border rounded-md"
+                    />
+                  </div>
+                ))}
+              </div>
+              <button type="submit" disabled={loading} className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-blue-300">
+                {loading ? 'Processing...' : (editingStore ? 'Update Store' : 'Add Store')}
+              </button>
+              {editingStore && (
+                <button 
+                  type="button" 
+                  onClick={() => setEditingStore(null)} 
+                  className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </form>
+          </div>
         </div>
       </div>
     </div>
