@@ -15,6 +15,8 @@ import EmployeePortal from './components/EmployeePortal/EmployeePortal';
 import EmployeeLogin from './components/EmployeePortal/EmployeeLogin';
 import { StoreColorProvider } from './contexts/StoreColorContext';
 import Manager from './components/Manager Portal/Manager';
+import ManagerList from './components/ManagerList';
+import DriverList from './components/DriversList';
 function App() {
   return (
     <AuthProvider>
@@ -41,8 +43,14 @@ function App() {
             <Route path="/calendar" element={
               <PrivateRoute component={CalendarView} requiredRole="admin" />
             } />
-             <Route path="/manager" element={
+             <Route path="/manager-dashboard" element={
               <PrivateRoute component={Manager}  />
+            } />
+             <Route path="/managerlist" element={
+              <PrivateRoute component={ManagerList}  />
+            } />
+            <Route path="/driverlist" element={
+              <PrivateRoute component={DriverList}  />
             } />
             <Route path="/analytics" element={
               <PrivateRoute component={AnalyticsDashboard} requiredRole="admin" />

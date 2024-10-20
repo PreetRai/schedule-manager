@@ -51,14 +51,31 @@ function CalendarView() {
     }, [weekStart]);
 
     const fetchEmployees = async () => {
-        const querySnapshot = await getDocs(collection(db, 'employees'));
-        const employeeList = querySnapshot
-            .docs
-            .map(doc => ({
+        try {
+            // Fetch employees
+            const employeesSnapshot = await getDocs(collection(db, 'employees'));
+            const employeeList = employeesSnapshot.docs.map(doc => ({
                 id: doc.id,
-                ...doc.data()
+                ...doc.data(),
+                isManager: false // Add a flag to distinguish employees
             }));
-        setEmployees(employeeList);
+    
+            // Fetch managers
+            const managersSnapshot = await getDocs(collection(db, 'managers'));
+            const managerList = managersSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                isManager: true // Add a flag to distinguish managers
+            }));
+    
+            // Combine employees and managers
+            const combinedList = [...employeeList, ...managerList];
+    
+            setEmployees(combinedList);
+        } catch (error) {
+            console.error("Error fetching employees and managers:", error);
+        } finally {
+        }
     };
 
     const fetchShifts = async () => {

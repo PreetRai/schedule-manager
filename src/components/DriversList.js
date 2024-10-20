@@ -3,37 +3,37 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } 
 import { getAuth,  sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
-function EmployeeList() {
-  const [employees, setEmployees] = useState([]);
+function DriverList() {
+  const [drivers, setDrivers] = useState([]);
   const [stores, setStores] = useState([]);
-  const [newEmployee, setNewEmployee] = useState({
+  const [newDriver, setNewDriver] = useState({
     claimed: false,
     name: '',
     email: '',
     phone: '',
-    role: 'employee',
+    role: 'driver',
     pay: 0,
     store_id: ''
   });
-  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editingDriver, setEditingDriver] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    fetchEmployees();
+    fetchDrivers();
     fetchStores();
   }, []);
 
-  const fetchEmployees = async () => {
+  const fetchDrivers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const querySnapshot = await getDocs(collection(db, 'employees'));
-      const employeeList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setEmployees(employeeList);
+      const querySnapshot = await getDocs(collection(db, 'drivers'));
+      const driverList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setDrivers(driverList);
     } catch (err) {
-      setError("Failed to fetch employees. Please try again.");
+      setError("Failed to fetch drivers. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -52,10 +52,10 @@ function EmployeeList() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (editingEmployee) {
-      setEditingEmployee({ ...editingEmployee, [name]: value });
+    if (editingDriver) {
+      setEditingDriver({ ...editingDriver, [name]: value });
     } else {
-      setNewEmployee({ ...newEmployee, [name]: value });
+      setNewDriver({ ...newDriver, [name]: value });
     }
   };
 
@@ -64,59 +64,59 @@ function EmployeeList() {
     setError(null);
     setSuccessMessage('');
 
-    const employeeData = editingEmployee || newEmployee;
+    const driverData = editingDriver || newDriver;
 
-    if (!employeeData.name || !employeeData.role || !employeeData.store_id || !employeeData.email) {
+    if (!driverData.name || !driverData.role || !driverData.store_id || !driverData.email) {
       setError("Please fill in name, email, role, and store.");
       return;
     }
 
     try {
-      if (editingEmployee) {
-        await updateDoc(doc(db, 'employees', editingEmployee.id), employeeData);
-        setSuccessMessage("Employee updated successfully!");
+      if (editingDriver) {
+        await updateDoc(doc(db, 'drivers', editingDriver.id), driverData);
+        setSuccessMessage("Driver updated successfully!");
       } else {
 
-        // Add the employee to Firestore with the UID as the document ID
-        await addDoc(collection(db, 'employees'), {
-          ...employeeData,
+        // Add the driver to Firestore with the UID as the document ID
+        await addDoc(collection(db, 'drivers'), {
+          ...driverData,
           claimed: false
         });
 
-        setSuccessMessage("Employee added successfully!");
+        setSuccessMessage("Driver added successfully!");
       }
-      setNewEmployee({
+      setNewDriver({
         claimed: false,
         name: '',
         email: '',
         phone: '',
-        role: '',
+        role: 'driver',
         pay: 0,
         store_id: ''
       });
-      setEditingEmployee(null);
-      fetchEmployees();
+      setEditingDriver(null);
+      fetchDrivers();
     } catch (err) {
-      console.error("Error saving employee:", err);
-      setError("Failed to save employee. Please try again.");
+      console.error("Error saving driver:", err);
+      setError("Failed to save driver. Please try again.");
     }
   };
 
-  const handleEdit = (employee) => {
-    setEditingEmployee(employee);
+  const handleEdit = (driver) => {
+    setEditingDriver(driver);
   };
 
   const handleDelete = async (id, email) => {
-    if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
+    if (window.confirm("Are you sure you want to delete this driver? This action cannot be undone.")) {
       try {
-        await deleteDoc(doc(db, 'employees', id));
+        await deleteDoc(doc(db, 'drivers', id));
 
 
-        setSuccessMessage("Employee deleted successfully!");
-        fetchEmployees();
+        setSuccessMessage("Driver deleted successfully!");
+        fetchDrivers();
       } catch (err) {
-        console.error("Error deleting employee:", err);
-        setError("Failed to delete employee. Please try again.");
+        console.error("Error deleting driver:", err);
+        setError("Failed to delete driver. Please try again.");
       }
     }
   };
@@ -139,9 +139,9 @@ function EmployeeList() {
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex justify-center">
       <div className="w-full max-w-7xl flex space-x-8">
-        {/* Employee List */}
+        {/* Driver List */}
         <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-2xl font-semibold mb-4">Employee List</h1>
+          <h1 className="text-2xl font-semibold mb-4">Driver List</h1>
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
           <table className="w-full">
@@ -154,15 +154,15 @@ function EmployeeList() {
               </tr>
             </thead>
             <tbody>
-              {employees.map(employee => (
-                <tr key={employee.id} className="border-b">
-                  <td className="py-2">{employee.name}</td>
-                  <td>{employee.role}</td>
-                  <td>{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</td>
+              {drivers.map(driver => (
+                <tr key={driver.id} className="border-b">
+                  <td className="py-2">{driver.name}</td>
+                  <td>{driver.role}</td>
+                  <td>{stores.find(store => store.id === driver.store_id)?.name || 'Unknown'}</td>
                   <td>
-                    <button onClick={() => handleEdit(employee)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500 mr-2">Delete</button>
-                    <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
+                    <button onClick={() => handleEdit(driver)} className="text-blue-500 mr-2">Edit</button>
+                    <button onClick={() => handleDelete(driver.id, driver.email)} className="text-red-500 mr-2">Delete</button>
+                    <button onClick={() => handleSendPasswordResetEmail(driver.email)} className="text-green-500">Reset Password</button>
                   </td>
                 </tr>
               ))}
@@ -170,14 +170,14 @@ function EmployeeList() {
           </table>
         </div>
 
-        {/* Add/Edit Employee Form */}
+        {/* Add/Edit Driver Form */}
         <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
+          <h2 className="text-xl font-semibold mb-4">{editingDriver ? 'Edit Driver' : 'Add Driver'}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               name="name"
-              value={editingEmployee ? editingEmployee.name : newEmployee.name}
+              value={editingDriver ? editingDriver.name : newDriver.name}
               onChange={handleInputChange}
               placeholder="Name *"
               className="w-full px-3 py-2 border rounded-md"
@@ -186,7 +186,7 @@ function EmployeeList() {
             <input
               type="email"
               name="email"
-              value={editingEmployee ? editingEmployee.email : newEmployee.email}
+              value={editingDriver ? editingDriver.email : newDriver.email}
               onChange={handleInputChange}
               placeholder="Email *"
               className="w-full px-3 py-2 border rounded-md"
@@ -194,7 +194,7 @@ function EmployeeList() {
             />
             <select
               name="store_id"
-              value={editingEmployee ? editingEmployee.store_id : newEmployee.store_id}
+              value={editingDriver ? editingDriver.store_id : newDriver.store_id}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded-md"
               required
@@ -209,7 +209,7 @@ function EmployeeList() {
             <input
               type="tel"
               name="phone"
-              value={editingEmployee ? editingEmployee.phone : newEmployee.phone}
+              value={editingDriver ? editingDriver.phone : newDriver.phone}
               onChange={handleInputChange}
               placeholder="Phone (Optional)"
               className="w-full px-3 py-2 border rounded-md"
@@ -217,18 +217,18 @@ function EmployeeList() {
             <input
               type="number"
               name="pay"
-              value={editingEmployee ? editingEmployee.pay : newEmployee.pay}
+              value={editingDriver ? editingDriver.pay : newDriver.pay}
               onChange={handleInputChange}
               placeholder="Hourly Pay (Optional)"
               className="w-full px-3 py-2 border rounded-md"
             />
             <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
-              {editingEmployee ? 'Update Employee' : 'Add Employee'}
+              {editingDriver ? 'Update Driver' : 'Add Driver'}
             </button>
-            {editingEmployee && (
+            {editingDriver && (
               <button 
                 type="button" 
-                onClick={() => setEditingEmployee(null)} 
+                onClick={() => setEditingDriver(null)} 
                 className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
               >
                 Cancel Edit
@@ -241,4 +241,4 @@ function EmployeeList() {
   );
 }
 
-export default EmployeeList;
+export default DriverList;

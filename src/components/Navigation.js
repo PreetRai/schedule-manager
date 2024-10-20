@@ -38,9 +38,10 @@ function Navigation() {
               {userRole === 'admin' && (
                 <>
                   <li><Link to="/" className="hover:text-gray-300">Admin Dashboard</Link></li>
-                  <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
                   <li><Link to="/calendar" className="hover:text-gray-300">Scheduler</Link></li>
-                  
+                  <li><Link to="/managerlist" className="hover:text-gray-300">Managers</Link></li>
+                  <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
+                  <li><Link to="/driverlist" className="hover:text-gray-300">Drivers</Link></li>
                   <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
                   <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
                 </>

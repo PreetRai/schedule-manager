@@ -3,37 +3,37 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } 
 import { getAuth,  sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
-function EmployeeList() {
-  const [employees, setEmployees] = useState([]);
+function ManagerList() {
+  const [managers, setManagers] = useState([]);
   const [stores, setStores] = useState([]);
-  const [newEmployee, setNewEmployee] = useState({
+  const [newManager, setNewManager] = useState({
     claimed: false,
     name: '',
     email: '',
     phone: '',
-    role: 'employee',
+    role: 'manager',
     pay: 0,
     store_id: ''
   });
-  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [editingManager, setEditingManager] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
-    fetchEmployees();
+    fetchManagers();
     fetchStores();
   }, []);
 
-  const fetchEmployees = async () => {
+  const fetchManagers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const querySnapshot = await getDocs(collection(db, 'employees'));
-      const employeeList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setEmployees(employeeList);
+      const querySnapshot = await getDocs(collection(db, 'managers'));
+      const managerList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setManagers(managerList);
     } catch (err) {
-      setError("Failed to fetch employees. Please try again.");
+      setError("Failed to fetch managers. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -52,10 +52,10 @@ function EmployeeList() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (editingEmployee) {
-      setEditingEmployee({ ...editingEmployee, [name]: value });
+    if (editingManager) {
+      setEditingManager({ ...editingManager, [name]: value });
     } else {
-      setNewEmployee({ ...newEmployee, [name]: value });
+      setNewManager({ ...newManager, [name]: value });
     }
   };
 
@@ -64,59 +64,59 @@ function EmployeeList() {
     setError(null);
     setSuccessMessage('');
 
-    const employeeData = editingEmployee || newEmployee;
+    const managerData = editingManager || newManager;
 
-    if (!employeeData.name || !employeeData.role || !employeeData.store_id || !employeeData.email) {
+    if (!managerData.name || !managerData.role || !managerData.store_id || !managerData.email) {
       setError("Please fill in name, email, role, and store.");
       return;
     }
 
     try {
-      if (editingEmployee) {
-        await updateDoc(doc(db, 'employees', editingEmployee.id), employeeData);
-        setSuccessMessage("Employee updated successfully!");
+      if (editingManager) {
+        await updateDoc(doc(db, 'managers', editingManager.id), managerData);
+        setSuccessMessage("Manager updated successfully!");
       } else {
 
-        // Add the employee to Firestore with the UID as the document ID
-        await addDoc(collection(db, 'employees'), {
-          ...employeeData,
+        // Add the manager to Firestore with the UID as the document ID
+        await addDoc(collection(db, 'managers'), {
+          ...managerData,
           claimed: false
         });
 
-        setSuccessMessage("Employee added successfully!");
+        setSuccessMessage("Manager added successfully!");
       }
-      setNewEmployee({
+      setNewManager({
         claimed: false,
         name: '',
         email: '',
         phone: '',
-        role: '',
+        role: 'manager',
         pay: 0,
         store_id: ''
       });
-      setEditingEmployee(null);
-      fetchEmployees();
+      setEditingManager(null);
+      fetchManagers();
     } catch (err) {
-      console.error("Error saving employee:", err);
-      setError("Failed to save employee. Please try again.");
+      console.error("Error saving manager:", err);
+      setError("Failed to save manager. Please try again.");
     }
   };
 
-  const handleEdit = (employee) => {
-    setEditingEmployee(employee);
+  const handleEdit = (manager) => {
+    setEditingManager(manager);
   };
 
   const handleDelete = async (id, email) => {
-    if (window.confirm("Are you sure you want to delete this employee? This action cannot be undone.")) {
+    if (window.confirm("Are you sure you want to delete this manager? This action cannot be undone.")) {
       try {
-        await deleteDoc(doc(db, 'employees', id));
+        await deleteDoc(doc(db, 'managers', id));
 
 
-        setSuccessMessage("Employee deleted successfully!");
-        fetchEmployees();
+        setSuccessMessage("Manager deleted successfully!");
+        fetchManagers();
       } catch (err) {
-        console.error("Error deleting employee:", err);
-        setError("Failed to delete employee. Please try again.");
+        console.error("Error deleting manager:", err);
+        setError("Failed to delete manager. Please try again.");
       }
     }
   };
@@ -139,9 +139,9 @@ function EmployeeList() {
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex justify-center">
       <div className="w-full max-w-7xl flex space-x-8">
-        {/* Employee List */}
+        {/* Manager List */}
         <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-2xl font-semibold mb-4">Employee List</h1>
+          <h1 className="text-2xl font-semibold mb-4">Manager List</h1>
           {error && <p className="text-red-500 mb-4">{error}</p>}
           {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
           <table className="w-full">
@@ -154,15 +154,15 @@ function EmployeeList() {
               </tr>
             </thead>
             <tbody>
-              {employees.map(employee => (
-                <tr key={employee.id} className="border-b">
-                  <td className="py-2">{employee.name}</td>
-                  <td>{employee.role}</td>
-                  <td>{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</td>
+              {managers.map(manager => (
+                <tr key={manager.id} className="border-b">
+                  <td className="py-2">{manager.name}</td>
+                  <td>{manager.role}</td>
+                  <td>{stores.find(store => store.id === manager.store_id)?.name || 'Unknown'}</td>
                   <td>
-                    <button onClick={() => handleEdit(employee)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500 mr-2">Delete</button>
-                    <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
+                    <button onClick={() => handleEdit(manager)} className="text-blue-500 mr-2">Edit</button>
+                    <button onClick={() => handleDelete(manager.id, manager.email)} className="text-red-500 mr-2">Delete</button>
+                    <button onClick={() => handleSendPasswordResetEmail(manager.email)} className="text-green-500">Reset Password</button>
                   </td>
                 </tr>
               ))}
@@ -170,14 +170,14 @@ function EmployeeList() {
           </table>
         </div>
 
-        {/* Add/Edit Employee Form */}
+        {/* Add/Edit Manager Form */}
         <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
+          <h2 className="text-xl font-semibold mb-4">{editingManager ? 'Edit Manager' : 'Add Manager'}</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               type="text"
               name="name"
-              value={editingEmployee ? editingEmployee.name : newEmployee.name}
+              value={editingManager ? editingManager.name : newManager.name}
               onChange={handleInputChange}
               placeholder="Name *"
               className="w-full px-3 py-2 border rounded-md"
@@ -186,7 +186,7 @@ function EmployeeList() {
             <input
               type="email"
               name="email"
-              value={editingEmployee ? editingEmployee.email : newEmployee.email}
+              value={editingManager ? editingManager.email : newManager.email}
               onChange={handleInputChange}
               placeholder="Email *"
               className="w-full px-3 py-2 border rounded-md"
@@ -194,7 +194,7 @@ function EmployeeList() {
             />
             <select
               name="store_id"
-              value={editingEmployee ? editingEmployee.store_id : newEmployee.store_id}
+              value={editingManager ? editingManager.store_id : newManager.store_id}
               onChange={handleInputChange}
               className="w-full px-3 py-2 border rounded-md"
               required
@@ -209,7 +209,7 @@ function EmployeeList() {
             <input
               type="tel"
               name="phone"
-              value={editingEmployee ? editingEmployee.phone : newEmployee.phone}
+              value={editingManager ? editingManager.phone : newManager.phone}
               onChange={handleInputChange}
               placeholder="Phone (Optional)"
               className="w-full px-3 py-2 border rounded-md"
@@ -217,18 +217,18 @@ function EmployeeList() {
             <input
               type="number"
               name="pay"
-              value={editingEmployee ? editingEmployee.pay : newEmployee.pay}
+              value={editingManager ? editingManager.pay : newManager.pay}
               onChange={handleInputChange}
               placeholder="Hourly Pay (Optional)"
               className="w-full px-3 py-2 border rounded-md"
             />
             <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
-              {editingEmployee ? 'Update Employee' : 'Add Employee'}
+              {editingManager ? 'Update Manager' : 'Add Manager'}
             </button>
-            {editingEmployee && (
+            {editingManager && (
               <button 
                 type="button" 
-                onClick={() => setEditingEmployee(null)} 
+                onClick={() => setEditingManager(null)} 
                 className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
               >
                 Cancel Edit
@@ -241,4 +241,4 @@ function EmployeeList() {
   );
 }
 
-export default EmployeeList;
+export default ManagerList;
