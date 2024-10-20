@@ -11,7 +11,7 @@ function Dashboard() {
   const [stores, setStores] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [shifts, setShifts] = useState([]);
-  const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date()));
+  const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date()+1));
 
   useEffect(() => {
     fetchStores();

@@ -24,7 +24,7 @@ function App() {
           <Navigation />
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/signup-Preet@310399" element={<Signup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/employee-login" element={<EmployeeLogin />} />
             

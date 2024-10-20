@@ -20,9 +20,11 @@ function Navigation() {
       <ul className="flex justify-between items-center ">
         <ul className="flex justify-start items-center gap-5">
         <li className="font-bold text-xl">Schedule Manager</li>
+        
         {currentUser && (
-          <>
-            <li className="font-bold text-xl">{currentUser.name}({userRole})</li>
+          
+          <><>|</>
+            <li className="font-bold text-xl">{currentUser.name} ({userRole})</li>
           </>
         )}</ul>
         <ul className="flex justify-end items-center gap-5">
@@ -35,16 +37,21 @@ function Navigation() {
             <>
               {userRole === 'admin' && (
                 <>
-                  <li><Link to="/" className="hover:text-gray-300">Dashboard</Link></li>
+                  <li><Link to="/" className="hover:text-gray-300">Admin Dashboard</Link></li>
                   <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
                   <li><Link to="/calendar" className="hover:text-gray-300">Scheduler</Link></li>
+                  
                   <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
                   <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
                 </>
               )}
-              {userRole === 'employee' && (
-                <li><Link to="/employee-portal" className="hover:text-gray-300">My Dashboard</Link></li>
+              {userRole === 'manager' && (
+                <li><Link to="/manager" className="hover:text-gray-300">Scheduler</Link></li>
               )}
+              {userRole === 'employee'  && (
+                <li><Link to="/employee-portal" className="hover:text-gray-300">My Schedule</Link></li>
+              )}
+               
               <li>
                 <button className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded" onClick={handleLogout}>
                   Logout

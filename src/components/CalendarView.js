@@ -26,7 +26,7 @@ function CalendarView() {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()+1));
     const [selectedStore, setSelectedStore] = useState(null);
     const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
     const storeColors = useStoreColors();
@@ -250,15 +250,14 @@ function CalendarView() {
                                 </div>
 
                                 <div
-                                    className="w-3/4  overflow-x-auto  overflow-hidden  rounded-lg col-span-full ">
+                                    className="w-3/4  overflow-x-auto    rounded-lg col-span-full ">
                                     <div className="p-4 ">
                                         <div
                                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                                             <div className="text-center">
                                                 <h1
                                                     onClick={() => setWeekStart(startOfWeek(new Date()))}
-                                                    className="mt-2 text-sm transition duration-300 ease-in-out">
-                                                    Current Week
+                                                    className=" text-sm transition duration-300 ease-in-out">
                                                 </h1>
                                                 <h2 className="text-xl font-bold text-gray-800">
                                                     {format(weekStart, 'MMMM d, yyyy')}
@@ -302,7 +301,7 @@ function CalendarView() {
                                         </div>
                                         <div className="overflow-x-auto shadow-md sm:rounded-lg">
                                             <table className="min-w-full divide-y divide-gray-200">
-                                                <thead className="bg-gray-50">
+                                                <thead className="bg-gray-50 ">
                                                     <tr>
                                                         <th
                                                             scope="col"
@@ -312,7 +311,7 @@ function CalendarView() {
                                                                 <th
                                                                     key={day}
                                                                     scope="col"
-                                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
+                                                                    className=" text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
                                                             ))
                                                         }
                                                         <th

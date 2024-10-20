@@ -1,14 +1,13 @@
 import React, {useState, useEffect} from 'react';
-import {
-    collection,
+import { getDoc,   collection,
     getDocs,
     addDoc,
     updateDoc,
     deleteDoc,
     doc,
     query,
-    where
-} from 'firebase/firestore';
+    where } from 'firebase/firestore';
+
 import {db} from '../firebase';
 import {
     format,
@@ -24,11 +23,11 @@ import Legend from './Legend';
 function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     const [shifts, setShifts] = useState([]);
     const [storeEmployees, setStoreEmployees] = useState([]);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()));
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()+1));
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
     const storeColors = useStoreColors();
-
+    const [storeName, setStoreName] = useState('');
     const days = [
         'Monday',
         'Tuesday',
@@ -65,8 +64,24 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     }));
     setShifts(shiftList);
 
+    const fetchStoreName = async (storeId) => {
+        try {
+          const storeDoc = await getDoc(doc(db, 'stores', storeId));
+          if (storeDoc.exists()) {
+            return storeDoc.data().name;
+          } else {
+            console.log("No such store!");
+            return "Unknown Store";
+          }
+        } catch (error) {
+          console.error("Error fetching store name:", error);
+          return "Error fetching store name";
+        }
+      };
     // Fetch default employees
     const defaultEmployees = await fetchDefaultEmployees();
+const store = await fetchStoreName(storeId);
+
 
     // Extract unique employees from shifts
     const shiftEmployees = Array.from(new Set(shiftList.map(shift => shift.employee_id)))
@@ -81,6 +96,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
         .map(id => combinedEmployees.find(e => e.id === id));
 
     setStoreEmployees(uniqueEmployees);
+    setStoreName(await fetchStoreName(storeId));
 };
 
     const handleCellClick = (employee, day) => {
@@ -229,11 +245,12 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                     <div className="p-4">
                         <div
                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
+                             <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>
                             <div className="text-center">
                                 <h1
                                     onClick={() => setWeekStart(startOfWeek(new Date()))}
-                                    className="mt-2 text-sm transition duration-300 ease-in-out">
-                                    Current Week
+                                    className=" text-sm transition duration-300 ease-in-out">
+                                 
                                 </h1>
                                 <h2 className="text-xl font-bold text-gray-800">
                                     {format(weekStart, 'MMMM d, yyyy')}
