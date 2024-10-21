@@ -215,7 +215,7 @@ const store = await fetchStoreName(storeId);
                         <div className="text-right">Earnings</div>
                     </div>
 
-                    <ul className="space-y-2">
+                    <ul className="space-y-2  max-h-[400px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
                         {
                             storeEmployees.map(employee => {
                                 const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
@@ -241,7 +241,7 @@ const store = await fetchStoreName(storeId);
                 </div>
 
                 <div
-                    className="w-3/4  overflow-x-auto  overflow-hidden  rounded-lg col-span-full">
+                    className="w-3/4  overflow-x-auto  rounded-lg col-span-full">
                     <div className="p-4">
                         <div
                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
@@ -267,7 +267,9 @@ const store = await fetchStoreName(storeId);
                                     className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
                             </div>
                         </div>
-                        <table className="min-w-full divide-y divide-gray-200">
+                        <div
+                                            className="shadow-md sm:rounded-lg max-h-[600px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
+                                       <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
                                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 ">Employee</th>
@@ -320,6 +322,8 @@ const store = await fetchStoreName(storeId);
                                 }
                             </tbody>
                         </table>
+                                          </div>
+                       
                     </div>
                     {
                         showModal && (

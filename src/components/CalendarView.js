@@ -26,7 +26,7 @@ function CalendarView() {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()+1));
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date() + 1));
     const [selectedStore, setSelectedStore] = useState(null);
     const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
     const storeColors = useStoreColors();
@@ -54,28 +54,34 @@ function CalendarView() {
         try {
             // Fetch employees
             const employeesSnapshot = await getDocs(collection(db, 'employees'));
-            const employeeList = employeesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                isManager: false // Add a flag to distinguish employees
-            }));
-    
+            const employeeList = employeesSnapshot
+                .docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    isManager: false // Add a flag to distinguish employees
+                }));
+
             // Fetch managers
             const managersSnapshot = await getDocs(collection(db, 'managers'));
-            const managerList = managersSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                isManager: true // Add a flag to distinguish managers
-            }));
-    
+            const managerList = managersSnapshot
+                .docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    isManager: true // Add a flag to distinguish managers
+                }));
+
             // Combine employees and managers
-            const combinedList = [...employeeList, ...managerList];
-    
+            const combinedList = [
+                ...employeeList,
+                ...managerList
+            ];
+
             setEmployees(combinedList);
         } catch (error) {
             console.error("Error fetching employees and managers:", error);
-        } finally {
-        }
+        } finally {}
     };
 
     const fetchShifts = async () => {
@@ -235,17 +241,18 @@ function CalendarView() {
                         <div className="flex flex-col h-screen bg-gray-100">
 
                             <div className="flex flex-1 overflow-hidden ">
-                                <div className="w-1/4 p-4 border-r overflow-y-auto">
+                                <div className="w-1/4 p-4 border-r overflow-y-auto ">
                                     <Legend stores={stores} title="Stores"/>
-                                    <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full">
-                                        <div className="px-4 py-5 sm:p-6">
+                                    <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full ">
+                                        <div className="px-4 py-5 sm:p-6 ">
                                             <h2 className="text-xl font-bold mb-4">Employees</h2>
-                                            <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
+                                            <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2 pr-3">
                                                 <div className="col-span-2">Name</div>
                                                 <div className="text-right">Hours</div>
                                                 <div className="text-right">Earnings</div>
                                             </div>
-                                            <ul className="space-y-2">
+                                            <ul
+                                                className="space-y-2 max-h-[400px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
                                                 {
                                                     employees.map(employee => {
                                                         const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
@@ -266,16 +273,14 @@ function CalendarView() {
                                     </div>
                                 </div>
 
-                                <div
-                                    className="w-3/4  overflow-x-auto    rounded-lg col-span-full ">
+                                <div className="w-3/4  overflow-x-auto    rounded-lg col-span-full ">
                                     <div className="p-4 ">
                                         <div
                                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                                             <div className="text-center">
                                                 <h1
                                                     onClick={() => setWeekStart(startOfWeek(new Date()))}
-                                                    className=" text-sm transition duration-300 ease-in-out">
-                                                </h1>
+                                                    className=" text-sm transition duration-300 ease-in-out"></h1>
                                                 <h2 className="text-xl font-bold text-gray-800">
                                                     {format(weekStart, 'MMMM d, yyyy')}
                                                     - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}
@@ -316,8 +321,9 @@ function CalendarView() {
                                                 </button>
                                             </div>
                                         </div>
-                                        <div className="overflow-x-auto shadow-md sm:rounded-lg">
-                                            <table className="min-w-full divide-y divide-gray-200">
+                                        <div
+                                            className="shadow-md sm:rounded-lg max-h-[600px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
+                                            <table className="min-w-full divide-y divide-gray-200 ">
                                                 <thead className="bg-gray-50 ">
                                                     <tr>
                                                         <th
@@ -350,7 +356,7 @@ function CalendarView() {
                                                                         ? 'bg-white'
                                                                         : 'bg-gray-50'}>
                                                                     <td
-                                                                        className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit ">{employee.name}</td>
+                                                                        className="px-6 py-4  text-sm font-medium text-gray-900 sticky left-0 bg-inherit ">{employee.name}</td>
                                                                     {
                                                                         days.map(day => {
                                                                             const shift = getShiftForEmployeeAndDay(employee.id, day);
@@ -361,7 +367,7 @@ function CalendarView() {
                                                                                 return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
                                                                             };
                                                                             return (
-                                                                                <td key={day} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                                                <td key={day} className="py-4  text-sm text-gray-500">
                                                                                     <div
                                                                                         className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${
                                                                                         shift
@@ -393,7 +399,7 @@ function CalendarView() {
                             {
                                 showModal && (
                                     <ShiftModal shift={currentShift} onSave={handleSaveShift} onDelete={handleDeleteShift} onClose={() => setShowModal(false)} stores={stores} employeeStoreId={selectedEmployeeStoreId}
-                                        // Pass the employee's store_id
+                                    
 />
                                 )
                             }

@@ -22,7 +22,7 @@ function App() {
     <AuthProvider>
         <StoreColorProvider>
       <Router>
-        <div className="App">
+        <div className="App ">
           <Navigation />
           <Routes>
             <Route path="/login" element={<Login />} />
