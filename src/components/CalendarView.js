@@ -22,6 +22,7 @@ import {
 import StoreCalendarView from './StoreCalenderView';
 import {useStoreColors} from '../contexts/StoreColorContext';
 import Legend from './Legend';
+import DriverCalendarView from './DriverCalenderView';
 function CalendarView() {
     const [employees, setEmployees] = useState([]);
     const [shifts, setShifts] = useState([]);
@@ -33,6 +34,9 @@ function CalendarView() {
     const [selectedStore, setSelectedStore] = useState(null);
     const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
     const storeColors = useStoreColors();
+    const [drivers, setDrivers] = useState([]);
+    const [showDriverCalendar, setShowDriverCalendar] = useState(false);
+  
     const days = [
         'Monday',
         'Tuesday',
@@ -47,12 +51,23 @@ function CalendarView() {
         fetchEmployees();
         fetchShifts();
         fetchStores();
+        fetchDrivers();
     }, []);
 
     useEffect(() => {
         fetchShifts();
     }, [weekStart]);
 
+
+    const fetchDrivers = async () => {
+        try {
+          const querySnapshot = await getDocs(collection(db, 'drivers'));
+          const driverList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setDrivers(driverList);
+        } catch (error) {
+          console.error("Error fetching drivers:", error);
+        }
+      };
     const clearShifts = async () => {
         if (window.confirm(
             "Are you sure you want to clear all shifts for this week? This action cannot be" +
@@ -268,6 +283,7 @@ function CalendarView() {
     };
     return (
         <div className="flex flex-col h-screen bg-gray-100">
+            
             <div className="flex justify-between items-center p-4">
                 <select
                     value={selectedStore || ''}
@@ -280,8 +296,21 @@ function CalendarView() {
                         )
                     }
                 </select>
+                <button
+        onClick={() => setShowDriverCalendar(!showDriverCalendar)}
+        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+      >
+        {showDriverCalendar ? 'Show Employee Calendar' : 'Show Driver Calendar'}
+      </button>
             </div>
-            {
+            {showDriverCalendar ? (
+        <DriverCalendarView
+          drivers={drivers}
+          stores={stores}
+          storeId={selectedStore}
+          weekStart={weekStart}
+        />
+      ) :(
                 selectedStore
                     ? (
                         <StoreCalendarView
@@ -473,11 +502,17 @@ function CalendarView() {
                             }
                         </div>
 
-                    )
+                    ))
             }
+
+
+
+            
         </div>
     );
 }
+
+
 
 function ShiftModal({
     shift,
