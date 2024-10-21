@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { auth, db } from '../../firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs, updateDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
 function EmployeeLogin() {
@@ -29,42 +29,67 @@ function EmployeeLogin() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
-
+  
     try {
-      // Check if the employee exists in the database
-      const employeesRef = collection(db, 'employees');
-      const q = query(employeesRef, where("email", "==", email));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        setError("No employee account found with this email.");
+      // Check if the user exists in any of the four databases
+      const databases = ['admins', 'employees', 'drivers', 'managers'];
+      let userDoc = null;
+      let userType = '';
+  
+      for (const dbName of databases) {
+        const dbRef = collection(db, dbName);
+        const q = query(dbRef, where("email", "==", email));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          userDoc = querySnapshot.docs[0];
+          userType = dbName;
+          break;
+        }
+      }
+  
+      if (!userDoc) {
+        setError("No account found with this email.");
         return;
       }
-
-      const employeeDoc = querySnapshot.docs[0];
-      const employeeData = employeeDoc.data();
-
-      if (employeeData.claimed) {
+  
+      const userData = userDoc.data();
+  
+      if (userData.claimed) {
         // If the account is already claimed, just sign in
-        await signInWithEmailAndPassword(auth, email, password) &&  navigate('/employee-dashboard');
-      
+        await signInWithEmailAndPassword(auth, email, password);
       } else {
         // If the account is not claimed, create a new auth account
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         
         // Create a new document with the UID as the document ID
-        await setDoc(doc(db, 'employees', userCredential.user.uid), {
-          ...employeeData,
+        await setDoc(doc(db, userType, userCredential.user.uid), {
+          ...userData,
           claimed: true,
-          id:userCredential.user.uid
+          id: userCredential.user.uid
         });
-
+  
         // Delete the old document
-        await deleteDoc(doc(db, 'employees', employeeDoc.id));
+        await deleteDoc(doc(db, userType, userDoc.id));
       }
-
-      // Redirect to the employee portal or dashboard
-      navigate('/employee-portal');
+  
+      // Redirect based on user type
+      switch (userType) {
+        case 'admins':
+          navigate('/admin-dashboard');
+          break;
+        case 'employees':
+          navigate('/employee-dashboard');
+          break;
+        case 'drivers':
+          navigate('/driver-dashboard');
+          break;
+        case 'managers':
+          navigate('/manager-dashboard');
+          break;
+        default:
+          navigate('/');
+      }
     } catch (error) {
       setError(error.message);
     }

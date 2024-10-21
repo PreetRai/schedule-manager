@@ -40,41 +40,13 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     useEffect(() => {
         fetchShifts();
     }, [weekStart, storeId]);
-
+    
     const fetchDefaultEmployees = async () => {
-        try {
-            // Fetch employees for the selected store
-            const employeesRef = collection(db, 'employees');
-            const employeesQuery = query(employeesRef, where("store_id", "==", storeId));
-            const employeesSnapshot = await getDocs(employeesQuery);
-            const employeeList = employeesSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                isManager: false // Add a flag to distinguish employees
-            }));
-    
-            // Fetch managers for the selected store
-            const managersRef = collection(db, 'managers');
-            const managersQuery = query(managersRef, where("store_id", "==", storeId));
-            const managersSnapshot = await getDocs(managersQuery);
-            const managerList = managersSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                isManager: true // Add a flag to distinguish managers
-            }));
-    
-            // Combine employees and managers
-            const combinedList = [...employeeList, ...managerList];
-    
-            return combinedList;
-        } catch (error) {
-            console.error("Error fetching employees and managers for store:", error);
-            throw error; // Rethrow the error to handle it in the calling function
-        }
+        const employeesRef = collection(db, 'employees');
+        const q = query(employeesRef, where("store_id", "==", storeId));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     };
-
-
-    
     const fetchShifts = async () => {
     const start = format(weekStart, 'yyyy-MM-dd');
     const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');

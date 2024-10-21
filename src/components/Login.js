@@ -18,17 +18,44 @@ function Login() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
-      // Fetch user's role from Firestore
-      const userDoc = await getDoc(doc(db, 'employees', user.uid));
-      if (userDoc.exists()) {
-        const userData = userDoc.data();
+  
+      // Define the databases to check
+      const databases = ['employees', 'managers', 'admins', 'drivers'];
+      let userData = null;
+      let userType = '';
+  
+      // Check each database for the user's data
+      for (const dbName of databases) {
+        const userDoc = await getDoc(doc(db, dbName, user.uid));
+        if (userDoc.exists()) {
+          userData = userDoc.data();
+          userType = dbName;
+          break;
+        }
+      }
+  
+      if (userData) {
         if (userData.role === 'pending') {
           setError('Your account is pending approval. Please contact an administrator.');
           await auth.signOut();
         } else {
           // Role is set, proceed with login
-          navigate('/');
+          // You can use userType here to determine which dashboard to navigate to
+          switch (userType) {
+            case 'admins':
+              navigate('/');
+              break;
+            case 'managers':
+              navigate('/manager-dashboard');
+              break;
+            case 'drivers':
+              navigate('/driver-dashboard');
+              break;
+            case 'employees':
+            default:
+              navigate('/employee-dashboard');
+              break;
+          }
         }
       } else {
         setError('User data not found. Please contact an administrator.');
@@ -39,7 +66,6 @@ function Login() {
       setError(error.message);
     }
   };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">

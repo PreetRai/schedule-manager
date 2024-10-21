@@ -1,11 +1,14 @@
 import React, {useState, useEffect} from 'react';
 import {
+    writeBatch,
     collection,
     getDocs,
     addDoc,
     updateDoc,
     deleteDoc,
-    doc
+    doc,
+    where,
+    query
 } from 'firebase/firestore';
 import {db} from '../firebase';
 import {
@@ -50,6 +53,57 @@ function CalendarView() {
         fetchShifts();
     }, [weekStart]);
 
+    const clearShifts = async () => {
+        if (window.confirm(
+            "Are you sure you want to clear all shifts for this week? This action cannot be" +
+            " undone."
+        )) {
+            try {
+                const start = format(weekStart, 'yyyy-MM-dd');
+                const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
+                const shiftsRef = collection(db, 'shifts');
+                const q = query(
+                    shiftsRef,
+                    where("date", ">=", start),
+                    where("date", "<=", end)
+                );
+                const querySnapshot = await getDocs(q);
+
+                const batch = writeBatch(db);
+                querySnapshot
+                    .docs
+                    .forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                await batch.commit();
+
+                setShifts([]);
+            } catch (error) {
+                console.error("Error clearing shifts:", error);
+            }
+        }
+    };
+
+    const copyShiftsToNextWeek = async () => {
+        const nextWeekStart = addDays(weekStart, 7);
+        const shiftsToCopy = shifts.map(shift => ({
+            ...shift,
+            date: format(addDays(parseISO(shift.date), 7), 'yyyy-MM-dd'),
+            id: null // Remove the id so a new one is generated
+        }));
+
+        try {
+            const batch = writeBatch(db);
+            shiftsToCopy.forEach(shift => {
+                const newShiftRef = doc(collection(db, 'shifts'));
+                batch.set(newShiftRef, shift);
+            });
+            await batch.commit();
+            handleNextWeek(); // Move to next week
+        } catch (error) {
+            console.error("Error copying shifts:", error);
+        }
+    };
     const fetchEmployees = async () => {
         try {
             // Fetch employees
@@ -319,6 +373,16 @@ function CalendarView() {
                                                             clipRule="evenodd"/>
                                                     </svg>
                                                 </button>
+                                                <button
+                                                    onClick={copyShiftsToNextWeek}
+                                                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                    Copy Shifts to Next Week
+                                                </button>
+                                                <button
+                                                    onClick={clearShifts}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                    Clear Shifts
+                                                </button>
                                             </div>
                                         </div>
                                         <div
@@ -398,16 +462,20 @@ function CalendarView() {
                             </div>
                             {
                                 showModal && (
-                                    <ShiftModal shift={currentShift} onSave={handleSaveShift} onDelete={handleDeleteShift} onClose={() => setShowModal(false)} stores={stores} employeeStoreId={selectedEmployeeStoreId}
-                                    
-/>
+                                    <ShiftModal
+                                        shift={currentShift}
+                                        onSave={handleSaveShift}
+                                        onDelete={handleDeleteShift}
+                                        onClose={() => setShowModal(false)}
+                                        stores={stores}
+                                        employeeStoreId={selectedEmployeeStoreId}/>
                                 )
                             }
-                            </div>
+                        </div>
 
                     )
             }
-            </div>
+        </div>
     );
 }
 

@@ -19,7 +19,7 @@ function Signup() {
       const user = userCredential.user;
 
       // Add user to Firestore
-      await setDoc(doc(db, 'employees', user.uid), {
+      await setDoc(doc(db, 'admins', user.uid), {
         claimed:true,
         name: name,
         email: email,
@@ -27,7 +27,7 @@ function Signup() {
       });
 
       alert('Signup successful. Please wait for an admin to assign your role.');
-      navigate('/login');
+      navigate('/');
     } catch (error) {
       setError(error.message);
     }

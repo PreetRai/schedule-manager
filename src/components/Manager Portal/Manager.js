@@ -18,7 +18,7 @@ function Manager() {
 
     const fetchManagerData = async () => {
         try {
-            const managersRef = collection(db, 'employees');
+            const managersRef = collection(db, 'managers');
             const q = query(managersRef, where("id", "==", currentUser.uid));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {

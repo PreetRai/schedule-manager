@@ -31,16 +31,21 @@ export function AuthProvider({ children }) {
   }, []);
 
   const fetchUserData = async (uid) => {
-    try {
-      const userDoc = await getDoc(doc(db, 'employees', uid));
-      if (userDoc.exists()) {
-        return { uid, ...userDoc.data() };
+    const databases = ['employees', 'managers', 'admins', 'drivers'];
+    
+    for (const dbName of databases) {
+      try {
+        const userDoc = await getDoc(doc(db, dbName, uid));
+        if (userDoc.exists()) {
+          return { uid, ...userDoc.data(), userType: dbName };
+        }
+      } catch (error) {
+        console.error(`Error fetching user data from ${dbName}:`, error);
       }
-      return null;
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      return null;
     }
+  
+    console.log("User not found in any database");
+    return null;
   };
 
   const logout = async () => {
