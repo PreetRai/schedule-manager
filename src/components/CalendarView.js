@@ -30,13 +30,15 @@ function CalendarView() {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
+    const [weekStart, setWeekStart] = useState(
+        startOfWeek(new Date(), {weekStartsOn: 1})
+    );
     const [selectedStore, setSelectedStore] = useState(null);
     const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
     const storeColors = useStoreColors();
     const [drivers, setDrivers] = useState([]);
     const [showDriverCalendar, setShowDriverCalendar] = useState(false);
-  
+
     const days = [
         'Monday',
         'Tuesday',
@@ -58,16 +60,20 @@ function CalendarView() {
         fetchShifts();
     }, [weekStart]);
 
-
     const fetchDrivers = async () => {
         try {
-          const querySnapshot = await getDocs(collection(db, 'drivers'));
-          const driverList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setDrivers(driverList);
+            const querySnapshot = await getDocs(collection(db, 'drivers'));
+            const driverList = querySnapshot
+                .docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            setDrivers(driverList);
         } catch (error) {
-          console.error("Error fetching drivers:", error);
+            console.error("Error fetching drivers:", error);
         }
-      };
+    };
     const clearShifts = async () => {
         if (window.confirm(
             "Are you sure you want to clear all shifts for this week? This action cannot be" +
@@ -256,11 +262,11 @@ function CalendarView() {
     };
 
     const handlePreviousWeek = () => {
-        setWeekStart(addDays(weekStart, -7),{weekStartsOn: 1});
+        setWeekStart(addDays(weekStart, -7), {weekStartsOn: 1});
     };
 
     const handleNextWeek = () => {
-        setWeekStart(addDays(weekStart, 7),{weekStartsOn: 1});
+        setWeekStart(addDays(weekStart, 7), {weekStartsOn: 1});
     };
 
     const calculateTotalHoursAndEarnings = (employeeId) => {
@@ -283,7 +289,7 @@ function CalendarView() {
     };
     return (
         <div className="flex flex-col h-screen bg-gray-100">
-            
+
             <div className="flex justify-between items-center p-4">
                 <select
                     value={selectedStore || ''}
@@ -296,221 +302,216 @@ function CalendarView() {
                         )
                     }
                 </select>
+                <h1 className='text-xl '>{showDriverCalendar?"Driver Scheduler":"Employee Scheduler"}</h1>
                 <button
-        onClick={() => setShowDriverCalendar(!showDriverCalendar)}
-        className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
-      >
-        {showDriverCalendar ? 'Show Employee Calendar' : 'Show Driver Calendar'}
-      </button>
+                    onClick={() => setShowDriverCalendar(!showDriverCalendar)}
+                    className="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+                    {
+                        showDriverCalendar
+                            ? 'Show Employee Calendar'
+                            : 'Show Driver Calendar'
+                    }
+                </button>
             </div>
-            {showDriverCalendar ? (
-        <DriverCalendarView
-          drivers={drivers}
-          stores={stores}
-          storeId={selectedStore}
-          weekStart={weekStart}
-        />
-      ) :(
-                selectedStore
+            {
+                showDriverCalendar
                     ? (
-                        <StoreCalendarView
-                            storeId={selectedStore}
-                            employees={employees}
+                        <DriverCalendarView
+                            drivers={drivers}
                             stores={stores}
-                            onShiftUpdate={fetchShifts}/>
+                            storeId={selectedStore}
+                            weekStart={weekStart}/>
                     )
                     : (
+                        selectedStore
+                            ? (
+                                <StoreCalendarView
+                                    storeId={selectedStore}
+                                    employees={employees}
+                                    stores={stores}
+                                    onShiftUpdate={fetchShifts}
+                                    selectedEmployeeStoreId={selectedEmployeeStoreId}
+                                    setSelectedEmployeeStoreId={setSelectedEmployeeStoreId}  />
+                            )
+                            : (
 
-                        <div className="flex flex-col h-screen bg-gray-100">
+                                <div className="flex flex-col h-screen bg-gray-100">
 
-                            <div className="flex flex-1 overflow-hidden ">
-                                <div className="w-1/4 p-4 border-r overflow-y-auto ">
-                                    <Legend stores={stores} title="Stores"/>
-                                    <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full ">
-                                        <div className="px-4 py-5 sm:p-6 ">
-                                            <h2 className="text-xl font-bold mb-4">Employees</h2>
-                                            <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2 pr-3">
-                                                <div className="col-span-2">Name</div>
-                                                <div className="text-right">Hours</div>
-                                                <div className="text-right">Earnings</div>
-                                            </div>
-                                            <ul
-                                                className="space-y-2 max-h-[400px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
-                                                {
-                                                    employees.map(employee => {
-                                                        const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
-                                                        return (
-                                                            <li
-                                                                key={employee.id}
-                                                                className="grid grid-cols-4 gap-2 p-2 cursor-pointer rounded "
-                                                                onClick={() => setSelectedEmployee(employee)}>
-                                                                <div className="col-span-2 truncate">{employee.name}</div>
-                                                                <div className="text-right">{hours.toFixed(2)}</div>
-                                                                <div className="text-right">${earnings.toFixed(2)}</div>
-                                                            </li>
-                                                        );
-                                                    })
-                                                }
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="w-3/4  overflow-x-auto    rounded-lg col-span-full ">
-                                    <div className="p-4 ">
-                                        <div
-                                            className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
-                                            <div className="text-center">
-                                                <h1
-
-                                                    className=" text-sm transition duration-300 ease-in-out"></h1>
-                                <h2 className="text-xl font-bold text-gray-800">
-  {format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart, { weekStartsOn: 1 }), 'MMMM d, yyyy')}
-</h2>
-                                            </div>
-                                            <div className='flex gap-5'>
-                                                <button
-                                                    onClick={handlePreviousWeek}
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-5 w-5 mr-2"
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor">
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-                                                            clipRule="evenodd"/>
-                                                    </svg>
-                                                    Previous Week
-                                                </button>
-
-                                                <button
-                                                    onClick={handleNextWeek}
-                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                                    Next Week
-                                                    <svg
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className="h-5 w-5 ml-2"
-                                                        viewBox="0 0 20 20"
-                                                        fill="currentColor">
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                                            clipRule="evenodd"/>
-                                                    </svg>
-                                                </button>
-                                                <button
-                                                    onClick={copyShiftsToNextWeek}
-                                                    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                                    Copy Shifts to Next Week
-                                                </button>
-                                                <button
-                                                    onClick={clearShifts}
-                                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                                    Clear Shifts
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className="shadow-md sm:rounded-lg max-h-[600px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
-                                            <table className="min-w-full divide-y divide-gray-200 ">
-                                                <thead className="bg-gray-50 ">
-                                                    <tr>
-                                                        <th
-                                                            scope="col"
-                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 ">Employee</th>
+                                    <div className="flex flex-1 overflow-hidden ">
+                                        <div className="w-1/4 p-4 border-r overflow-y-auto ">
+                                            <Legend stores={stores} title="Stores"/>
+                                            <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full ">
+                                                <div className="px-4 py-5 sm:p-6 ">
+                                                    <h2 className="text-xl font-bold mb-4">Employees</h2>
+                                                    <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2 pr-3">
+                                                        <div className="col-span-2">Name</div>
+                                                        <div className="text-right">Hours</div>
+                                                        <div className="text-right">Earnings</div>
+                                                    </div>
+                                                    <ul
+                                                        className="space-y-2 max-h-[400px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
                                                         {
-                                                            days.map(day => (
-                                                                <th
-                                                                    key={day}
-                                                                    scope="col"
-                                                                    className=" text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
-                                                            ))
+                                                            employees.map(employee => {
+                                                                const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
+                                                                return (
+                                                                    <li
+                                                                        key={employee.id}
+                                                                        className="grid grid-cols-4 gap-2 p-2 cursor-pointer rounded "
+                                                                        onClick={() => setSelectedEmployee(employee)}>
+                                                                        <div className="col-span-2 truncate">{employee.name}</div>
+                                                                        <div className="text-right">{hours.toFixed(2)}</div>
+                                                                        <div className="text-right">${earnings.toFixed(2)}</div>
+                                                                    </li>
+                                                                );
+                                                            })
                                                         }
-                                                        <th
-                                                            scope="col"
-                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Hours</th>
-                                                        <th
-                                                            scope="col"
-                                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Earnings</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
-                                                    {
-                                                        employees.map((employee, index) => {
-                                                            const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
-                                                            return (
-                                                                <tr
-                                                                    key={employee.id}
-                                                                    className={index % 2 === 0
-                                                                        ? 'bg-white'
-                                                                        : 'bg-gray-50'}>
-                                                                    <td
-                                                                        className="px-6 py-4  text-sm font-medium text-gray-900 sticky left-0 bg-inherit ">{employee.name}</td>
-                                                                    {
-                                                                        days.map(day => {
-                                                                            const shift = getShiftForEmployeeAndDay(employee.id, day);
-                                                                            const formatTime12Hour = (time) => {
-                                                                                if (!time) 
-                                                                                    return '';
-                                                                                const [hours, minutes] = time.split(':');
-                                                                                return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
-                                                                            };
-                                                                            return (
-                                                                                <td key={day} className="py-4  text-sm text-gray-500">
-                                                                                    <div
-                                                                                        className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${
-                                                                                        shift
-                                                                                            ? storeColors[shift.store_id] || ''
-                                                                                            : 'hover:bg-gray-100'}`}
-                                                                                        onClick={() => handleCellClick(employee, day)}>
-                                                                                        {
-                                                                                            shift
-                                                                                                ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}`
-                                                                                                : <span className="text-gray-400">+</span>
-                                                                                        }
-                                                                                    </div>
-                                                                                </td>
-                                                                            );
-                                                                        })
-                                                                    }
-                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">{hours.toFixed(2)}</td>
-                                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">${earnings.toFixed(2)}</td>
-                                                                </tr>
-                                                            );
-                                                        })
-                                                    }
-                                                </tbody>
-                                            </table>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </ div>
-                                </div>
-                            </div>
-                            {
-                                showModal && (
-                                    <ShiftModal
-                                        shift={currentShift}
-                                        onSave={handleSaveShift}
-                                        onDelete={handleDeleteShift}
-                                        onClose={() => setShowModal(false)}
-                                        stores={stores}
-                                        employeeStoreId={selectedEmployeeStoreId}/>
-                                )
-                            }
-                        </div>
 
-                    ))
+                                        <div className="w-3/4  overflow-x-auto rounded-lg col-span-full ">
+                                            <div className="p-4">
+
+                                                <div
+                                                    className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
+
+                                                    <h1 className={`p-2 rounded bg-blue-500 text-white`}>Master Calendar</h1>
+                                                    <h2 className="text-xl font-bold text-gray-800 mx-2">
+                                                        {format(weekStart, 'MMMM d, yyyy')}
+                                                        - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMMM d, yyyy')}
+                                                    </h2>
+                                                    <div className="text-center flex items-center justify-evenly gap-2">
+
+                                                        <button
+                                                            onClick={handlePreviousWeek}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 transition duration-300 ease-in-out flex items-center">
+
+                                                            Previous Week
+                                                        </button>
+                                                        <h1 className=" text-sm transition duration-300 ease-in-out"></h1>
+
+                                                        <button
+                                                            onClick={handleNextWeek}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                            Next Week
+                                                        </button>
+                                                    </div>
+
+                                                </div>
+
+                                                <div
+                                                    className="shadow-md sm:rounded-lg max-h-[600px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
+                                                    <table className="min-w-full divide-y divide-gray-200 ">
+                                                        <thead className="bg-gray-50">
+                                                            <tr>
+                                                                <th
+                                                                    scope="col"
+                                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 ">Employee</th>
+                                                                {
+                                                                    days.map(day => (
+                                                                        <th
+                                                                            key={day}
+                                                                            scope="col"
+                                                                            className=" text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
+                                                                    ))
+                                                                }
+                                                                <th
+                                                                    scope="col"
+                                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Hours</th>
+                                                                <th
+                                                                    scope="col"
+                                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden">Total Earnings</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="bg-white divide-y divide-gray-200">
+                                                            {
+                                                                employees.map((employee, index) => {
+                                                                    const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
+                                                                    return (
+                                                                        <tr
+                                                                            key={employee.id}
+                                                                            className={index % 2 === 0
+                                                                                ? 'bg-white'
+                                                                                : 'bg-gray-50'}>
+                                                                            <td
+                                                                                className="px-6 py-4  text-sm font-medium text-gray-900 sticky left-0 bg-inherit ">{employee.name}</td>
+                                                                            {
+                                                                                days.map(day => {
+                                                                                    const shift = getShiftForEmployeeAndDay(employee.id, day);
+                                                                                    const formatTime12Hour = (time) => {
+                                                                                        if (!time) 
+                                                                                            return '';
+                                                                                        const [hours, minutes] = time.split(':');
+                                                                                        return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+                                                                                    };
+                                                                                    return (
+                                                                                        <td key={day} className="py-4  text-sm text-gray-500">
+                                                                                            <div
+                                                                                                className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${
+                                                                                                shift
+                                                                                                    ? storeColors[shift.store_id] || ''
+                                                                                                    : 'hover:bg-gray-100'}`}
+                                                                                                onClick={() => handleCellClick(employee, day)}>
+                                                                                                {
+                                                                                                    shift
+                                                                                                        ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}`
+                                                                                                        : <span className="text-gray-400">+</span>
+                                                                                                }
+                                                                                            </div>
+                                                                                        </td>
+                                                                                    );
+                                                                                })
+                                                                            }
+                                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">{hours.toFixed(2)}</td>
+                                                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden">${earnings.toFixed(2)}</td>
+                                                                        </tr>
+                                                                    );
+                                                                })
+                                                            }
+                                                        </tbody>
+                                                    </table>
+
+                                                </div>
+                                                <div className='flex gap-2 justify-end my-4'>
+
+                                                    <button
+                                                        onClick={copyShiftsToNextWeek}
+                                                        className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                        Copy Shifts to Next Week
+                                                    </button>
+                                                    <button
+                                                        onClick={clearShifts}
+                                                        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                        Clear Shifts
+                                                    </button>
+                                                </div>
+                                            </ div>
+                                        </div>
+
+                                    </div>
+                                    {
+                                        showModal && (
+                                            <ShiftModal
+                                                shift={currentShift}
+                                                onSave={handleSaveShift}
+                                                onDelete={handleDeleteShift}
+                                                onClose={() => setShowModal(false)}
+                                                stores={stores}
+                                                storeId={selectedStore}
+                                                onShiftUpdate={fetchShifts}
+                                                />
+                                        )
+                                    }
+                                </div>
+
+                            )
+                    )
             }
 
-
-
-            
         </div>
     );
 }
-
-
 
 function ShiftModal({
     shift,
