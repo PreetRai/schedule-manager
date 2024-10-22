@@ -30,7 +30,7 @@ function CalendarView() {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date() + 1));
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [selectedStore, setSelectedStore] = useState(null);
     const [selectedEmployeeStoreId, setSelectedEmployeeStoreId] = useState(null);
     const storeColors = useStoreColors();
@@ -256,11 +256,11 @@ function CalendarView() {
     };
 
     const handlePreviousWeek = () => {
-        setWeekStart(addDays(weekStart, -7));
+        setWeekStart(addDays(weekStart, -7),{weekStartsOn: 1});
     };
 
     const handleNextWeek = () => {
-        setWeekStart(addDays(weekStart, 7));
+        setWeekStart(addDays(weekStart, 7),{weekStartsOn: 1});
     };
 
     const calculateTotalHoursAndEarnings = (employeeId) => {
@@ -362,13 +362,11 @@ function CalendarView() {
                                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                                             <div className="text-center">
                                                 <h1
-                                                    onClick={() => setWeekStart(startOfWeek(new Date()))}
-                                                    className=" text-sm transition duration-300 ease-in-out"></h1>
-                                                <h2 className="text-xl font-bold text-gray-800">
-                                                    {format(weekStart, 'MMMM d, yyyy')}
-                                                    - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}
-                                                </h2>
 
+                                                    className=" text-sm transition duration-300 ease-in-out"></h1>
+                                <h2 className="text-xl font-bold text-gray-800">
+  {format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart, { weekStartsOn: 1 }), 'MMMM d, yyyy')}
+</h2>
                                             </div>
                                             <div className='flex gap-5'>
                                                 <button

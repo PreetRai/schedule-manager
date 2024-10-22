@@ -23,7 +23,8 @@ import Legend from './Legend';
 function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     const [shifts, setShifts] = useState([]);
     const [storeEmployees, setStoreEmployees] = useState([]);
-    const [weekStart, setWeekStart] = useState(startOfWeek(new Date()+1));
+
+    const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
     const storeColors = useStoreColors();
@@ -40,7 +41,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     useEffect(() => {
         fetchShifts();
     }, [weekStart, storeId]);
-    
+
     const fetchDefaultEmployees = async () => {
         const employeesRef = collection(db, 'employees');
         const q = query(employeesRef, where("store_id", "==", storeId));
@@ -246,18 +247,14 @@ const store = await fetchStoreName(storeId);
                         <div
                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                              <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>
-                            <div className="text-center">
-                                <h1
-                                    onClick={() => setWeekStart(startOfWeek(new Date()))}
-                                    className=" text-sm transition duration-300 ease-in-out">
-                                 
-                                </h1>
-                                <h2 className="text-xl font-bold text-gray-800">
-                                    {format(weekStart, 'MMMM d, yyyy')}
-                                    - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}
-                                </h2>
+                             <div className="text-center">
+                                                <h1
 
-                            </div>
+                                                    className=" text-sm transition duration-300 ease-in-out"></h1>
+                                <h2 className="text-xl font-bold text-gray-800">
+  {format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart, { weekStartsOn: 1 }), 'MMMM d, yyyy')}
+</h2>
+                                            </div>
                             <div className='flex gap-5'>
                                 <button
                                     onClick={handlePreviousWeek}
