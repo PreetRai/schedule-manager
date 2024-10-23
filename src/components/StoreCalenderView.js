@@ -253,7 +253,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
         )) {
             try {
                 const start = format(weekStart, 'yyyy-MM-dd');
-                const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
+                const end = format(endOfWeek(weekStart,{weekStartsOn:1}), 'yyyy-MM-dd');
                 const shiftsRef = collection(db, 'shifts');
                 const q = query(
                     shiftsRef,
