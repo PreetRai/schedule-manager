@@ -371,7 +371,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                                                             return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
                                                         };
                                                         return (
-                                                            <td key={day} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                            <td key={day} className="px-1 py-4 whitespace-nowrap text-sm text-gray-500">
                                                                 <div
                                                                     className={` p-2 rounded cursor-pointer transition duration-150 ease-in-out ${shift
                                                                         ? storeColors[storeId] || ''
