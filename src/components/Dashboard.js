@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay,parseISO } from 'date-fns';
 import Legend from './Legend';
 import { useStoreColors } from '../contexts/StoreColorContext';
 
@@ -13,8 +13,9 @@ function Dashboard() {
   const [drivers, setDrivers] = useState([]);
   const [shifts, setShifts] = useState([]);
   const [driverShifts, setDriverShifts] = useState([]);
-  const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date()));
-
+  const [currentWeek, setCurrentWeek] = useState(
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
   useEffect(() => {
     const fetchData = async () => {
       await Promise.all([
@@ -44,8 +45,8 @@ function Dashboard() {
   };
 
   const fetchShifts = async () => {
-    const start = format(currentWeek, 'yyyy-MM-dd');
-    const end = format(endOfWeek(currentWeek), 'yyyy-MM-dd');
+    const start = format(startOfWeek(currentWeek), 'yyyy-MM-dd');
+    const end = format(endOfWeek(currentWeek,{weekStartsOn:1}), 'yyyy-MM-dd');
     const shiftsQuery = query(
       collection(db, 'shifts'),
       where('date', '>=', start),
@@ -57,7 +58,7 @@ function Dashboard() {
 
   const fetchDriverShifts = async () => {
     const start = format(currentWeek, 'yyyy-MM-dd');
-    const end = format(endOfWeek(currentWeek), 'yyyy-MM-dd');
+    const end = format(endOfWeek(currentWeek,{weekStartsOn:1}), 'yyyy-MM-dd');
     const driverShiftsQuery = query(
       collection(db, 'driver_shifts'),
       where('date', '>=', start),
@@ -69,7 +70,7 @@ function Dashboard() {
 
   const weekDays = eachDayOfInterval({
     start: currentWeek,
-    end: endOfWeek(currentWeek)
+    end: endOfWeek(currentWeek,{weekStartsOn:1})
   });
 
   const renderShifts = (dayShifts, isDriverShift = false) => {
@@ -80,14 +81,13 @@ function Dashboard() {
       acc[shift.store_id].push(shift);
       return acc;
     }, {});
-
     const sortedStoreIds = Object.keys(shiftsByStore).sort();
 
     return sortedStoreIds.map(storeId => (
       <div key={storeId} className={`${storeColors[storeId] || ''} p-1 rounded mb-1`}>
         {shiftsByStore[storeId].map(shift => (
           <div key={shift.id}>
-            {isDriverShift ? shift.driver_name : shift.employee_name}: {shift.start_time} - {shift.end_time}
+            {isDriverShift ? shift.driver_name : shift.employee_name}: {shift.start_time} - {shift.end_time},
           </div>
         ))}
       </div>
@@ -151,20 +151,25 @@ function ScheduleTable({ title, shifts, weekDays, renderShifts, linkTo }) {
                 {weekDays.map(day => (
                   <th key={day.toISOString()} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {format(day, 'EEE dd')}
+                    { console.log(day)}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-                {weekDays.map(day => {
-                  const dayShifts = shifts.filter(shift => isSameDay(new Date(shift.date), day));
-                  return (
-                    <td key={day.toISOString()} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {renderShifts(dayShifts)}
-                    </td>
-                  );
-                })}
+{weekDays.map(day => {
+  const dayShifts = shifts.filter(shift => {
+    const shiftDate = parseISO(shift.date); 
+    return isSameDay(day, shiftDate);
+  });
+
+  return (
+    <td key={day.toISOString()} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {renderShifts(dayShifts)}
+    </td>
+  );
+})}
               </tr>
             </tbody>
           </table> 
