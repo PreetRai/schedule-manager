@@ -1,16 +1,21 @@
 // DriverCalendarView.js
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, getDocs,getDoc, addDoc, updateDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
 import { useStoreColors } from '../contexts/StoreColorContext';
+import Legend from './Legend';
 
-function DriverCalendarView({ drivers, stores, storeId, weekStart }) {
+function DriverCalendarView({ drivers, stores, storeId }) {
   const [shifts, setShifts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
   const storeColors = useStoreColors();
-
+  
+  const [storeName, setStoreName] = useState('');
+  const [weekStart, setWeekStart] = useState(
+    startOfWeek(new Date(), {weekStartsOn: 1})
+);
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   useEffect(() => {
@@ -27,12 +32,35 @@ function DriverCalendarView({ drivers, stores, storeId, weekStart }) {
       where("date", ">=", start),
       where("date", "<=", end)
     );
+
+    const fetchStoreName = async (storeId) => {
+      try {
+          const storeDoc = await getDoc(doc(db, 'stores', storeId));
+          if (storeDoc.exists()) {
+              return storeDoc
+                  .data()
+                  .name;
+          } else {
+              console.log("No such store!");
+              return "Unknown Store";
+          }
+      } catch (error) {
+          console.error("Error fetching store name:", error);
+          return ;
+      }
+  };
+
+
+
+
     const querySnapshot = await getDocs(q);
     const shiftList = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
     setShifts(shiftList);
+    
+    setStoreName(await fetchStoreName(storeId));
   };
 
   const handleCellClick = (driver, day) => {
@@ -53,6 +81,14 @@ function DriverCalendarView({ drivers, stores, storeId, weekStart }) {
     }
     setShowModal(true);
   };
+
+  const handlePreviousWeek = () => {
+    setWeekStart(addDays(weekStart, -7), {weekStartsOn: 1});
+};
+
+const handleNextWeek = () => {
+    setWeekStart(addDays(weekStart, 7), {weekStartsOn: 1});
+};
 
   const handleSaveShift = async (shiftData) => {
     try {
@@ -85,6 +121,37 @@ function DriverCalendarView({ drivers, stores, storeId, weekStart }) {
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
+      
+      <Legend stores={stores} title="Stores" rounded={"rounded-none m-5"} />
+      <div
+                                                    className="flex justify-between items-center p-4 bg-white shadow-md  mb-4">
+                                                    {storeName? 
+                                                    <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>  :
+                                                    <h1 className='p-2 rounded bg-blue-500 text-white'>Master calender</h1> 
+                                                    }
+                                                
+                                                    <h2 className="text-xl font-bold text-gray-800 mx-2">
+                                                        {format(weekStart, 'MMMM d, yyyy')}
+                                                        - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMMM d, yyyy')}
+                                                    </h2>
+                                                    <div className="text-center flex items-center justify-evenly gap-2">
+
+                                                        <button
+                                                            onClick={handlePreviousWeek}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 transition duration-300 ease-in-out flex items-center">
+
+                                                            Previous Week
+                                                        </button>
+                                                        <h1 className=" text-sm transition duration-300 ease-in-out"></h1>
+
+                                                        <button
+                                                            onClick={handleNextWeek}
+                                                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+                                                            Next Week
+                                                        </button>
+                                                    </div>
+
+                                                </div>
       <div className="flex-1 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

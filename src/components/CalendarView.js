@@ -339,7 +339,7 @@ function CalendarView() {
 
                                     <div className="flex flex-1 overflow-hidden ">
                                         <div className="w-1/4 p-4 border-r overflow-y-auto hidden">
-                                            <Legend stores={stores} title="Stores"/>
+                                            <Legend stores={stores} rounded={"mb-5"}title="Stores"/>
                                             <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full ">
                                                 <div className="px-4 py-5 sm:p-6 ">
                                                     <h2 className="text-xl font-bold mb-4">Employees</h2>
@@ -371,7 +371,7 @@ function CalendarView() {
                                         </div>
 
                                         <div className="w-full overflow-x-auto rounded-lg col-span-full">
-                                        <Legend stores={stores} title="Stores" rounded={"rounded-none"} className="rounded-none"/>
+                                        <Legend stores={stores} title="Stores" rounded={"rounded-none m-5"} />
                                             <div className="">
                                            
                                                 <div
