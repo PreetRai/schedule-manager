@@ -17,6 +17,7 @@ import { StoreColorProvider } from './contexts/StoreColorContext';
 import Manager from './components/Manager Portal/Manager';
 import ManagerList from './components/ManagerList';
 import DriverList from './components/DriversList';
+import PayrollView from './components/PayrollView';
 function App() {
   return (
     <AuthProvider>
@@ -51,6 +52,9 @@ function App() {
             } />
             <Route path="/driverlist" element={
               <PrivateRoute component={DriverList}  />
+            } />
+            <Route path="/payroll" element={
+              <PrivateRoute component={PayrollView} requiredRole="admin" />
             } />
             <Route path="/analytics" element={
               <PrivateRoute component={AnalyticsDashboard} requiredRole="admin" />
