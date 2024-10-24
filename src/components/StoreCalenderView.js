@@ -280,7 +280,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     return (
         <div className="flex flex-col h-screen bg-gray-100">
             <div className="flex flex-1 overflow-hidden">
-                <div className="w-1/4 p-4 border-r overflow-y-auto">
+                <div className="w-1/4 p-4 border-r overflow-y-auto hidden">
                     <Legend stores={stores} title={"Stores"}/>
                     <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full">
                         <div className="px-4 py-5 sm:p-6">
@@ -316,7 +316,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                     </div>
                 </div>
 
-                <div className="w-3/4  overflow-x-auto  rounded-lg col-span-full">
+                <div className="w-full overflow-x-auto  rounded-lg col-span-full">
                     <div className="p-4">
                         <div
                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
@@ -352,47 +352,39 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                                                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
                                             ))
                                         }
-                                        <th className="hidden">Total Hours</th>
-                                    </tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earnings</th>
+                                        </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {
-                                        storeEmployees.map(employee => (
-                                            <tr key={employee.id}>
-                                                <td
-                                                    className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{employee.name}</td>
-                                                {
-                                                    days.map(day => {
-                                                        const shift = getShiftForEmployeeAndDay(employee.id, day);
-                                                        const formatTime12Hour = (time) => {
-                                                            if (!time) 
-                                                                return '';
-                                                            const [hours, minutes] = time.split(':');
-                                                            return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
-                                                        };
-                                                        return (
-                                                            <td key={day} className="px-1 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                                <div
-                                                                    className={` p-2 rounded cursor-pointer transition duration-150 ease-in-out ${shift
-                                                                        ? storeColors[storeId] || ''
-                                                                        : 'hover:bg-gray-100'}`}
-                                                                    onClick={() => handleCellClick(employee, day)}>
-                                                                    {
-                                                                        shift
-                                                                            ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}`
-                                                                            : <span className="text-gray-400">+</span>
-                                                                    }
-                                                                </div>
-
-                                                            </td>
-                                                        );
-                                                    })
-                                                }
-                                                <td className="hidden">{calculateTotalHours(employee.id).toFixed(2)}</td>
-                                            </tr>
-                                        ))
-                                    }
-                                </tbody>
+    {storeEmployees.map(employee => {
+        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
+        return (
+            <tr key={employee.id}>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{employee.name}</td>
+                {days.map(day => {
+                    const shift = getShiftForEmployeeAndDay(employee.id, day);
+                    const formatTime12Hour = (time) => {
+                        if (!time) return '';
+                        const [hours, minutes] = time.split(':');
+                        return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+                    };
+                    return (
+                        <td key={day} className="px-1 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <div
+                                className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${shift ? storeColors[storeId] || '' : 'hover:bg-gray-100'}`}
+                                onClick={() => handleCellClick(employee, day)}>
+                                {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : <span className="text-gray-400">+</span>}
+                            </div>
+                        </td>
+                    );
+                })}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hours.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${earnings.toFixed(2)}</td>
+            </tr>
+        );
+    })}
+</tbody>
                             </table>
                         </div>
                         <div className='flex gap-2 justify-end my-4'>
