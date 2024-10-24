@@ -6,7 +6,7 @@ import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-f
 import { useStoreColors } from '../contexts/StoreColorContext';
 import Legend from './Legend';
 
-function DriverCalendarView({ drivers, stores, storeId }) {
+function DriverCalendarView({ drivers, stores, storeId,legend }) {
   const [shifts, setShifts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
@@ -122,8 +122,8 @@ const handleNextWeek = () => {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       
-      <Legend stores={stores} title="Stores" rounded={"rounded-none m-5"} />
-      <div
+   {legend?<Legend stores={stores} title="Stores" rounded={"rounded-none m-5"} />
+    : <div className='p-2'></div>}      <div
                                                     className="flex justify-between items-center p-4 bg-white shadow-md  mb-4">
                                                     {storeName? 
                                                     <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>  :
@@ -182,8 +182,7 @@ const handleNextWeek = () => {
             ))}
           </tbody>
         </table>
-      </div>
-      <div className='flex gap-2 justify-end m-4'>
+        <div className='flex gap-2 justify-end m-4'>
 
 <button
     // onClick={copyShiftsToNextWeek}
@@ -196,6 +195,8 @@ const handleNextWeek = () => {
     Clear Shifts
 </button>
 </div>
+      </div>
+   
       {showModal && (
         <ShiftModal
           shift={currentShift}

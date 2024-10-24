@@ -3,19 +3,45 @@ import { useAuth } from "../../contexts/AuthContext";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import StoreCalendarView from "../StoreCalenderView";
-
+import DriverCalendarView from "../DriverCalenderView";
+import {
+    format,
+    parseISO,
+    addDays,
+    parse,
+    startOfWeek,
+    endOfWeek
+} from 'date-fns';
 function Manager() {
     const { currentUser } = useAuth();
     const [managedStore, setManagedStore] = useState(null);
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [weekStart, setWeekStart] = useState(
+        startOfWeek(new Date(), {weekStartsOn: 1})
+    );
+    const [drivers, setDrivers] = useState([]);
+    const [showDriverCalendar, setShowDriverCalendar] = useState(false);
     useEffect(() => {
         fetchManagerData();
         fetchStores();
+        fetchDrivers();
     }, [currentUser]);
-
+    const fetchDrivers = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'drivers'));
+            const driverList = querySnapshot
+                .docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+            setDrivers(driverList);
+        } catch (error) {
+            console.error("Error fetching drivers:", error);
+        }
+    };
     const fetchManagerData = async () => {
         try {
             const managersRef = collection(db, 'managers');
@@ -64,12 +90,35 @@ function Manager() {
         return <div>You are not assigned to manage any store.</div>;
     }
 
-    return (
+    return (   <>      <div className="flex justify-between items-center p-4">
+        <></>
+        <h1 className='text-xl '>{showDriverCalendar?"Driver Scheduler":"Employee Scheduler"}</h1>
+        <button
+            onClick={() => setShowDriverCalendar(!showDriverCalendar)}
+            className="bg-blue-500 text-white px-4 py-2 rounded mt-4">
+            {
+                showDriverCalendar
+                    ? 'Show Employee Calendar'
+                    : 'Show Driver Calendar'
+            }
+        </button>
+    </div>      {
+        showDriverCalendar
+            ? (
+                <DriverCalendarView
+                    drivers={drivers}
+                    stores={stores}
+                    storeId={managedStore}
+                    weekStart={weekStart}
+                    legend={false}/>
+            )
+            : (
         <StoreCalendarView 
             storeId={managedStore} 
             stores={stores}
             onShiftUpdate={handleShiftUpdate}
-        />
+        />)}</>
+
     );
 }
 
