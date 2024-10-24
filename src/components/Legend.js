@@ -7,7 +7,7 @@ function Legend({ stores,title,rounded }) {
   return (
     <div className={`bg-white p-4 ${rounded ?  rounded : 'rounded-lg'} shadow-md`}>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {stores.map(store => (
           <div key={store.id} className="flex items-center">
             <div 
