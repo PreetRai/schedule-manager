@@ -356,7 +356,7 @@ function CalendarView() {
                                                                 return (
                                                                     <li
                                                                         key={employee.id}
-                                                                        className="grid grid-cols-4 gap-2 p-2 cursor-pointer rounded "
+                                                                        className="grid grid-cols-4 gap-2 p-2 cursor-pointer  "
                                                                         onClick={() => setSelectedEmployee(employee)}>
                                                                         <div className="col-span-2 truncate">{employee.name}</div>
                                                                         <div className="text-right">{hours.toFixed(2)}</div>
@@ -370,11 +370,12 @@ function CalendarView() {
                                             </div>
                                         </div>
 
-                                        <div className="w-full overflow-x-auto rounded-lg col-span-full ">
-                                            <div className="p-4">
-
+                                        <div className="w-full overflow-x-auto rounded-lg col-span-full">
+                                        <Legend stores={stores} title="Stores" rounded={"rounded-none"} className="rounded-none"/>
+                                            <div className="">
+                                           
                                                 <div
-                                                    className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
+                                                    className="flex justify-between items-center p-4 bg-white shadow-md  mb-4">
 
                                                     <h1 className={`p-2 rounded bg-blue-500 text-white`}>Master Calendar</h1>
                                                     <h2 className="text-xl font-bold text-gray-800 mx-2">
