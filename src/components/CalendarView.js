@@ -474,7 +474,7 @@ function CalendarView() {
                                                     </table>
 
                                                 </div>
-                                                <div className='flex gap-2 justify-end my-4'>
+                                                <div className='flex gap-2 justify-end m-4'>
 
                                                     <button
                                                         onClick={copyShiftsToNextWeek}

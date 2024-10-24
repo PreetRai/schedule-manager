@@ -183,6 +183,19 @@ const handleNextWeek = () => {
           </tbody>
         </table>
       </div>
+      <div className='flex gap-2 justify-end m-4'>
+
+<button
+    // onClick={copyShiftsToNextWeek}
+    className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+    Copy Shifts to Next Week
+</button>
+<button
+  //  onClick={clearShifts}
+    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
+    Clear Shifts
+</button>
+</div>
       {showModal && (
         <ShiftModal
           shift={currentShift}
