@@ -1,11 +1,11 @@
 import React from 'react';
 import { useStoreColors } from '../contexts/StoreColorContext';
 
-function Legend({ stores,title }) {
+function Legend({ stores,title,rounded }) {
   const storeColors = useStoreColors();
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-md">
+    <div className={`bg-white p-4 ${rounded ?  rounded : 'rounded-lg'} shadow-md`}>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <div className="grid grid-cols-2 gap-2">
         {stores.map(store => (
