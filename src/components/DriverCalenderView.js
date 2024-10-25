@@ -11,7 +11,6 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
   const [showModal, setShowModal] = useState(false);
   const [currentShift, setCurrentShift] = useState(null);
   const storeColors = useStoreColors();
-  
   const [storeName, setStoreName] = useState('');
   const [weekStart, setWeekStart] = useState(
     startOfWeek(new Date(), {weekStartsOn: 1})
@@ -20,8 +19,25 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
 
   useEffect(() => {
     fetchShifts();
+    filterDriversByStore();
   }, [weekStart, storeId]);
-
+  
+  const [filteredDrivers, setFilteredDrivers] = useState([]);
+  const [Driver, setDriver] = useState([]);
+  const filterDriversByStore = async () => {
+    if (storeId) {
+      const driversRef = collection(db, 'drivers');
+      const q = query(driversRef, where("store_id", "==", storeId));
+      const querySnapshot = await getDocs(q);
+      const driverList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setFilteredDrivers(driverList);
+    } else {
+      setFilteredDrivers(drivers);
+    }
+  };
   const fetchShifts = async () => {
     const start = format(weekStart, 'yyyy-MM-dd');
     const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
@@ -163,24 +179,24 @@ const handleNextWeek = () => {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {drivers.map(driver => (
-              <tr key={driver.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{driver.name}</td>
-                {days.map(day => {
-                  const shift = getShiftForDriverAndDay(driver.id, day);
-                  return (
-                    <td
-                      key={day}
-                      className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer ${shift ? storeColors[storeId] || '' : ''}`}
-                      onClick={() => handleCellClick(driver, day)}
-                    >
-                      {shift ? `${shift.start_time} - ${shift.end_time}` : '+'}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
+  {filteredDrivers.map(driver => (
+    <tr key={driver.id}>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{driver.name}</td>
+      {days.map(day => {
+        const shift = getShiftForDriverAndDay(driver.id, day);
+        return (
+          <td
+            key={day}
+            className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer ${shift ? storeColors[storeId] || '' : ''}`}
+            onClick={() => handleCellClick(driver, day)}
+          >
+            {shift ? `${shift.start_time} - ${shift.end_time}` : '+'}
+          </td>
+        );
+      })}
+    </tr>
+  ))}
+</tbody>
         </table>
         <div className='flex gap-2 justify-end m-4'>
 
