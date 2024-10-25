@@ -4,6 +4,7 @@ import { db } from '../firebase';
 
 function AnalyticsDashboard() {
   const [totalEmployees, setTotalEmployees] = useState(0);
+  const [totalDrivers, setTotalDrivers] = useState(0);
   const [totalStores, setTotalStores] = useState(0);
   const [totalHoursScheduled, setTotalHoursScheduled] = useState(0);
   const [averageHourlyRate, setAverageHourlyRate] = useState(0);
@@ -21,6 +22,8 @@ function AnalyticsDashboard() {
       // Fetch total employees
       const employeesSnapshot = await getDocs(collection(db, 'employees'));
       setTotalEmployees(employeesSnapshot.size);
+      const driverSnapshot = await getDocs(collection(db, 'drivers'));
+      setTotalDrivers(driverSnapshot.size);
 
       // Fetch total stores
       const storesSnapshot = await getDocs(collection(db, 'stores'));
@@ -34,9 +37,8 @@ function AnalyticsDashboard() {
       endOfWeek.setDate(endOfWeek.getDate() + 7);
 
       const schedulesQuery = query(
-        collection(db, 'schedules'),
-        where('date', '>=', startOfWeek),
-        where('date', '<', endOfWeek)
+        collection(db, 'shifts'),
+   
       );
       const schedulesSnapshot = await getDocs(schedulesQuery);
 
@@ -53,7 +55,7 @@ function AnalyticsDashboard() {
       // Calculate average hourly rate
       let totalRate = 0;
       employeesSnapshot.forEach(doc => {
-        totalRate += parseFloat(doc.data().hourly_rate);
+        totalRate += parseFloat(doc.data().pay);
       });
       setAverageHourlyRate(totalRate / employeesSnapshot.size);
 
@@ -82,6 +84,10 @@ function AnalyticsDashboard() {
             <div className="bg-blue-100 p-4 rounded-lg">
               <h2 className="text-lg font-semibold">Total Employees</h2>
               <p className="text-3xl font-bold">{totalEmployees}</p>
+            </div>
+            <div className="bg-blue-100 p-4 rounded-lg">
+              <h2 className="text-lg font-semibold">Total Drivers</h2>
+              <p className="text-3xl font-bold">{totalDrivers}</p>
             </div>
             <div className="bg-green-100 p-4 rounded-lg">
               <h2 className="text-lg font-semibold">Total Stores</h2>
