@@ -82,12 +82,17 @@ function Dashboard() {
       return acc;
     }, {});
     const sortedStoreIds = Object.keys(shiftsByStore).sort();
-
+    const formatTime12Hour = (time) => {
+      if (!time) 
+          return '';
+      const [hours, minutes] = time.split(':');
+      return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+  };
     return sortedStoreIds.map(storeId => (
       <div key={storeId} className={`${storeColors[storeId] || ''} p-1 rounded mb-1`}>
         {shiftsByStore[storeId].map(shift => (
           <div key={shift.id}>
-            {isDriverShift ? shift.driver_name : shift.employee_name}: {shift.start_time} - {shift.end_time},
+            {isDriverShift ? shift.driver_name : shift.employee_name}: <br/>{formatTime12Hour(shift.start_time)} - {formatTime12Hour(shift.end_time)},
           </div>
         ))}
       </div>
