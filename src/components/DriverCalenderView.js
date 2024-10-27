@@ -5,7 +5,6 @@ import { db } from '../firebase';
 import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
 import { useStoreColors } from '../contexts/StoreColorContext';
 import Legend from './Legend';
-
 function DriverCalendarView({ drivers, stores, storeId,legend }) {
   const [shifts, setShifts] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -20,6 +19,11 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
   useEffect(() => {
     fetchShifts();
     filterDriversByStore();
+    if (storeId) {
+      fetchStoreName(storeId).then(setStoreName);
+    } else {
+      setStoreName("All Stores");
+    }
   }, [weekStart, storeId]);
   
   const [filteredDrivers, setFilteredDrivers] = useState([]);
@@ -74,17 +78,13 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
       setStoreName("All Stores");
     }
   };
-
-  const fetchStoreName = async () => {
-    const querySnapshot = await getDocs(collection(db, 'stores'));
-    const storeList = querySnapshot
-        .docs
-        .map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    setStoreName(storeList);
-};
+  const fetchStoreName = async (storeId) => {
+    const storeDoc = await getDoc(doc(db, 'stores', storeId));
+    if (storeDoc.exists()) {
+      return storeDoc.data().name;
+    }
+    return "Unknown Store";
+  };
 const handleCellClick = async (driver, day) => {
   const date = addDays(weekStart, days.indexOf(day));
   const existingShift = getShiftForDriverAndDay(driver.id, day);
@@ -181,10 +181,13 @@ const handleNextWeek = () => {
    {legend?<Legend stores={stores} title="Stores" rounded={"rounded-none m-5"} />
     : <div className='p-2'></div>}      <div
                                                     className="flex justify-between items-center p-4 bg-white shadow-md  mb-4">
-                                                    {storeName? 
-                                                    <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>  :
-                                                    <h1 className='p-2 rounded bg-blue-500 text-white'>Master calender</h1> 
-                                                    }
+                                                   {storeId ? (
+    <h1 className={`p-2 rounded ${storeColors[storeId]}`}>
+      {storeName || "Loading..."}
+    </h1>
+  ) : (
+    <h1 className='p-2 rounded bg-blue-500 text-white'>Master Calendar</h1>
+  )}
                                                 
                                                     <h2 className="text-xl font-bold text-gray-800 mx-2">
                                                         {format(weekStart, 'MMMM d, yyyy')}
@@ -224,13 +227,21 @@ const handleNextWeek = () => {
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{driver.name}</td>
       {days.map(day => {
         const shift = getShiftForDriverAndDay(driver.id, day);
+        const formatTime12Hour = (time) => {
+          if (!time) 
+            return '';
+        const [hours, minutes] = time.split(':');
+        return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
+    };
         return (
           <td
             key={day}
-            className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer ${shift ? storeColors[storeId] || '' : ''}`}
+            className={`px-6 py-4 whitespace-nowrap text-sm text-gray-500 cursor-pointer ${
+              shift ? storeColors[shift.store_id] || '' : ''
+            }`}
             onClick={() => handleCellClick(driver, day)}
           >
-            {shift ? `${shift.start_time} - ${shift.end_time}` : '+'}
+            {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : '+'}
           </td>
         );
       })}
