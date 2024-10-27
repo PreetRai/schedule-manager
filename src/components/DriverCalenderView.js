@@ -24,8 +24,9 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
   
   const [filteredDrivers, setFilteredDrivers] = useState([]);
   const [Driver, setDriver] = useState([]);
+
   const filterDriversByStore = async () => {
-    if (storeId) {
+    if (storeId && stores.some(store => store.id === storeId)) {
       const driversRef = collection(db, 'drivers');
       const q = query(driversRef, where("store_id", "==", storeId));
       const querySnapshot = await getDocs(q);
@@ -38,36 +39,27 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
       setFilteredDrivers(drivers);
     }
   };
+
   const fetchShifts = async () => {
     const start = format(weekStart, 'yyyy-MM-dd');
-    const end = format(endOfWeek(weekStart), 'yyyy-MM-dd');
+    const end = format(endOfWeek(weekStart,{weekStartsOn:1}), 'yyyy-MM-dd');
     const shiftsRef = collection(db, 'driver_shifts');
-    const q = query(
-      shiftsRef,
-      where("store_id", "==", storeId),
-      where("date", ">=", start),
-      where("date", "<=", end)
-    );
+    let q;
 
-    const fetchStoreName = async (storeId) => {
-      try {
-          const storeDoc = await getDoc(doc(db, 'stores', storeId));
-          if (storeDoc.exists()) {
-              return storeDoc
-                  .data()
-                  .name;
-          } else {
-              console.log("No such store!");
-              return "Unknown Store";
-          }
-      } catch (error) {
-          console.error("Error fetching store name:", error);
-          return ;
-      }
-  };
-
-
-
+    if (storeId && stores.some(store => store.id === storeId)) {
+      q = query(
+        shiftsRef,
+        where("store_id", "==", storeId),
+        where("date", ">=", start),
+        where("date", "<=", end)
+      );
+    } else {
+      q = query(
+        shiftsRef,
+        where("date", ">=", start),
+        where("date", "<=", end)
+      );
+    }
 
     const querySnapshot = await getDocs(q);
     const shiftList = querySnapshot.docs.map(doc => ({
@@ -75,29 +67,45 @@ function DriverCalendarView({ drivers, stores, storeId,legend }) {
       ...doc.data()
     }));
     setShifts(shiftList);
-    
-    setStoreName(await fetchStoreName(storeId));
-  };
 
-  const handleCellClick = (driver, day) => {
-    const date = addDays(weekStart, days.indexOf(day));
-    const existingShift = getShiftForDriverAndDay(driver.id, day);
-    
-    if (existingShift) {
-      setCurrentShift(existingShift);
+    if (storeId && stores.some(store => store.id === storeId)) {
+      setStoreName(await fetchStoreName(storeId));
     } else {
-      setCurrentShift({
-        driver_id: driver.id,
-        driver_name: driver.name,
-        date: format(date, 'yyyy-MM-dd'),
-        start_time: '',
-        end_time: '',
-        store_id: storeId
-      });
+      setStoreName("All Stores");
     }
-    setShowModal(true);
   };
 
+  const fetchStoreName = async () => {
+    const querySnapshot = await getDocs(collection(db, 'stores'));
+    const storeList = querySnapshot
+        .docs
+        .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    setStoreName(storeList);
+};
+const handleCellClick = async (driver, day) => {
+  const date = addDays(weekStart, days.indexOf(day));
+  const existingShift = getShiftForDriverAndDay(driver.id, day);
+  
+  if (existingShift) {
+    setCurrentShift(existingShift);
+  } else {
+    const defaultStoreId = await fetchDriverDefaultStore(driver.id);
+    const defaultHours = defaultStoreId ? await fetchStoreHours(defaultStoreId) : null;
+    
+    setCurrentShift({
+      driver_id: driver.id,
+      driver_name: driver.name,
+      date: format(date, 'yyyy-MM-dd'),
+      start_time: defaultHours ? defaultHours.start_time : '',
+      end_time: defaultHours ? defaultHours.end_time : '',
+      store_id: defaultStoreId || storeId
+    });
+  }
+  setShowModal(true);
+};
   const handlePreviousWeek = () => {
     setWeekStart(addDays(weekStart, -7), {weekStartsOn: 1});
 };
@@ -134,6 +142,38 @@ const handleNextWeek = () => {
     const date = format(addDays(weekStart, days.indexOf(day)), 'yyyy-MM-dd');
     return shifts.find(s => s.driver_id === driverId && s.date === date);
   };
+
+
+  const fetchDriverDefaultStore = async (driverId) => {
+    try {
+      const driverDoc = await getDoc(doc(db, 'drivers', driverId));
+      if (driverDoc.exists()) {
+        return driverDoc.data().store_id;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching driver's default store:", error);
+      return null;
+    }
+  };
+  
+  const fetchStoreHours = async (storeId) => {
+    try {
+      const storeDoc = await getDoc(doc(db, 'stores', storeId));
+      if (storeDoc.exists()) {
+        const storeData = storeDoc.data();
+        return {
+          start_time: storeData.opening_time || '09:00',
+          end_time: storeData.closing_time || '17:00'
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching store hours:", error);
+      return null;
+    }
+  };
+
 
   return (
     <div className="flex flex-col h-screen bg-gray-100">
@@ -214,14 +254,14 @@ const handleNextWeek = () => {
       </div>
    
       {showModal && (
-        <ShiftModal
-          shift={currentShift}
-          onSave={handleSaveShift}
-          onDelete={handleDeleteShift}
-          onClose={() => setShowModal(false)}
-          stores={stores}
-        />
-      )}
+  <ShiftModal
+    shift={currentShift}
+    onSave={handleSaveShift}
+    onDelete={handleDeleteShift}
+    onClose={() => setShowModal(false)}
+    stores={stores}
+  />
+)}
     </div>
   );
 }

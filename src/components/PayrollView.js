@@ -291,13 +291,16 @@ function PayrollView() {
                   {payrollData[person.id]?.status || "Not Ready"}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <button 
-                    onClick={() => toggleStatus(person.id)}
-                    className={`bg-${payrollData[person.id]?.status === "Ready" ? "red" : "green"}-500 hover:bg-${payrollData[person.id]?.status === "Ready" ? "red" : "green"}-600 
-                    text-white px-4 py-2 rounded focus:outline-none focus:shadow-outline`}
-                  >
-                    {payrollData[person.id]?.status === "Ready" ? "Mark Not Ready" : "Mark Ready"}
-                  </button>
+                <button 
+  onClick={() => toggleStatus(person.id)}
+  className={`${
+    payrollData[person.id]?.status === "Ready" 
+      ? "bg-red-500 hover:bg-red-600" 
+      : "bg-green-500 hover:bg-green-600"
+  } text-white px-4 py-2 rounded focus:outline-none focus:shadow-outline`}
+>
+  {payrollData[person.id]?.status === "Ready" ? "Mark Not Ready" : "Mark Ready"}
+</button>
                 </td>
               </tr>
             );
