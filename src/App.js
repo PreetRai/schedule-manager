@@ -53,9 +53,15 @@ function App() {
             <Route path="/driverlist" element={
               <PrivateRoute component={DriverList}  />
             } />
-            <Route path="/payroll" element={
-              <PrivateRoute component={PayrollView} requiredRole="admin" />
-            } />
+           <Route
+  path="/payroll"
+  element={
+    <PrivateRoute
+      component={PayrollView}
+      requiredRoles={["admin", "manager"]}
+    />
+  }
+/>
             <Route path="/analytics" element={
               <PrivateRoute component={AnalyticsDashboard} requiredRole="admin" />
             } />

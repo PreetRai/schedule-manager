@@ -48,7 +48,10 @@ function Navigation() {
                 </>
               )}
               {userRole === 'manager' && (
+                <>
                 <li><Link to="/manager-dashboard" className="hover:text-gray-300">Scheduler</Link></li>
+                
+                <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li></>
               )}
               {userRole === 'employee'  && (
                 <li><Link to="/employee-portal" className="hover:text-gray-300">My Schedule</Link></li>
