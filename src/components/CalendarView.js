@@ -27,7 +27,7 @@ function CalendarView() {
     const [employees, setEmployees] = useState([]);
     const [shifts, setShifts] = useState([]);
     const [stores, setStores] = useState([]);
-  
+    const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [currentShift, setCurrentShift] = useState(null);
     const [weekStart, setWeekStart] = useState(
@@ -54,6 +54,10 @@ function CalendarView() {
         fetchShifts();
         fetchStores();
         fetchDrivers();
+    }, []);
+
+    useEffect(() => {
+        fetchShifts();
     }, [weekStart]);
 
     const fetchDrivers = async () => {
@@ -102,7 +106,7 @@ function CalendarView() {
     };
 
     const copyShiftsToNextWeek = async () => {
-        // const nextWeekStart = addDays(weekStart, 7);
+        const nextWeekStart = addDays(weekStart, 7);
         const shiftsToCopy = shifts.map(shift => ({
             ...shift,
             date: format(addDays(parseISO(shift.date), 7), 'yyyy-MM-dd'),
