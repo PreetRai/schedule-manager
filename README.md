@@ -51,7 +51,8 @@ This project is an Employee Management System built with React and Firebase. It 
 
 ## Deployment
 
-    This project is set up for continuous deployment with GitHub Actions and Firebase Hosting. Any push to the `main` branch will trigger a new deployment.
+    This project is set up for continuous deployment with GitHub Actions and Firebase Hosting.
+    Any push to the `main` branch will trigger a new deployment.
 
 ## Contributing
 
