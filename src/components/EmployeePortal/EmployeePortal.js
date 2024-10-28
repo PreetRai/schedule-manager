@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../contexts/AuthContext';
-import { format, parseISO, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
+import { format, addDays, parse, startOfWeek, endOfWeek } from 'date-fns';
 import Legend from '../Legend';
 import { useStoreColors } from '../../contexts/StoreColorContext';
 
@@ -24,7 +24,7 @@ function EmployeePortal() {
     fetchStores();
     fetchEmployeeData();
     fetchShifts();
-  }, [currentUser, weekStart]);
+  }, [currentUser, weekStart,fetchEmployeeData, fetchShifts]);
 
   const fetchStores = async () => {
     try {

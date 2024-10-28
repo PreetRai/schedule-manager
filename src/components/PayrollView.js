@@ -25,7 +25,8 @@ function PayrollView() {
       fetchManagers(),
       fetchShifts(),
       fetchStores(),
-      fetchPayrollData()
+      fetchPayrollData(),
+      fetchData()
     ]);
   };
 

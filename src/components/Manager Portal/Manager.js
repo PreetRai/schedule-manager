@@ -5,12 +5,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import StoreCalendarView from "../StoreCalenderView";
 import DriverCalendarView from "../DriverCalenderView";
 import {
-    format,
-    parseISO,
-    addDays,
-    parse,
     startOfWeek,
-    endOfWeek
 } from 'date-fns';
 function Manager() {
     const { currentUser } = useAuth();
@@ -18,7 +13,7 @@ function Manager() {
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [weekStart, setWeekStart] = useState(
+    const [weekStart] = useState(
         startOfWeek(new Date(), {weekStartsOn: 1})
     );
     const [drivers, setDrivers] = useState([]);
@@ -27,6 +22,7 @@ function Manager() {
         fetchManagerData();
         fetchStores();
         fetchDrivers();
+        fetchManagerData();
     }, [currentUser]);
     const fetchDrivers = async () => {
         try {

@@ -47,7 +47,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
 
     useEffect(() => {
         fetchShifts();
-    }, [weekStart, storeId]);
+    }, [weekStart, storeId,fetchShifts]);
 
     const fetchDefaultEmployees = async () => {
         const employeesRef = collection(db, 'employees');
@@ -196,16 +196,6 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
         setWeekStart(addDays(weekStart, 7));
     };
 
-    const calculateTotalHours = (employeeId) => {
-        return shifts
-            .filter(shift => shift.employee_id === employeeId)
-            .reduce((total, shift) => {
-                const start = parse(shift.start_time, 'HH:mm', new Date());
-                const end = parse(shift.end_time, 'HH:mm', new Date());
-                const hours = (end - start) / (1000 * 60 * 60);
-                return total + hours;
-            }, 0);
-    };
     const calculateTotalHoursAndEarnings = (employeeId) => {
         const employee = storeEmployees.find(e => e.id === employeeId);
         const hourlyRate = employee
@@ -226,7 +216,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
     };
 
     const copyShiftsToNextWeek = async () => {
-        const nextWeekStart = addDays(weekStart, 7);
+      //  const nextWeekStart = addDays(weekStart, 7);
         const shiftsToCopy = shifts.map(shift => ({
             ...shift,
             date: format(addDays(parseISO(shift.date), 7), 'yyyy-MM-dd'),
@@ -322,7 +312,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
                             className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
                             <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>
                             <div className="text-center">
-                                <h1 className=" text-sm transition duration-300 ease-in-out"></h1>
+                                {/* <h1 className=" text-sm transition duration-300 ease-in-out"></h1> */}
                                 <h2 className="text-xl font-bold text-gray-800">
                                     {format(weekStart, 'MMMM d, yyyy')}
                                     - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMMM d, yyyy')}
