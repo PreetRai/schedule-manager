@@ -19,15 +19,14 @@ function PayrollView() {
 
   const fetchData = async () => {
     await fetchStores();
-    await Promise.all([
-      fetchEmployees(),
-      fetchDrivers(),
-      fetchManagers(),
-      fetchShifts(),
-      fetchStores(),
-      fetchPayrollData(),
-      fetchData()
-    ]);
+    if (selectedStore) {
+      await Promise.all([
+        fetchEmployees(),
+        fetchDrivers(),
+        fetchManagers(),
+        fetchShifts(),
+      ]);
+    }
   };
 
   const fetchEmployees = async () => {
@@ -108,7 +107,7 @@ function PayrollView() {
     const payrollRef = collection(db, 'weekly_pay');
     const q = query(payrollRef,
       where('week_start', '==', format(currentWeek, 'yyyy-MM-dd')),
-      where('store_id', '==', selectedStore || '')
+      where('store_id', '==', selectedStore )
     );
     
     const querySnapshot = await getDocs(q);
