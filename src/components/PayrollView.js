@@ -89,7 +89,6 @@ function PayrollView() {
     ];
     
     setShifts(allShifts);
- //   driverShiftSnapshot.forEach(shifts => {console.log(shifts.driver_name)})
   };
   
 

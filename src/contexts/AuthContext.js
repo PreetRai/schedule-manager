@@ -43,8 +43,6 @@ export function AuthProvider({ children }) {
         console.error(`Error fetching user data from ${dbName}:`, error);
       }
     }
-  
-    console.log("User not found in any database");
     return null;
   };
 

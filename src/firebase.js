@@ -1,15 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-
 const firebaseConfig = {  
-    apiKey: "AIzaSyCp3MN8JcHPjA1d9AWONnf-Mi5h9J1VTe4",
-    authDomain: "schedule-manager-ee9ae.firebaseapp.com",
-    projectId: "schedule-manager-ee9ae",
-    storageBucket: "schedule-manager-ee9ae.appspot.com",
-    messagingSenderId: "766928693785",
-    appId: "1:766928693785:web:3e327fc6ea0d05a36b1888",
-    measurementId: "G-V1EDCRWLP9"
+    apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+    authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.REACT_APP_FIREBASE_APP_ID,
+    measurementId: process.env.REACT_APP_FIREBASE_MEASURMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

@@ -156,7 +156,6 @@ function ScheduleTable({ title, shifts, weekDays, renderShifts, linkTo }) {
                 {weekDays.map(day => (
                   <th key={day.toISOString()} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     {format(day, 'EEE dd')}
-                    { console.log(day)}
                   </th>
                 ))}
               </tr>
