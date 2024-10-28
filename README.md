@@ -57,7 +57,3 @@ This project is an Employee Management System built with React and Firebase. It 
 ## Contributing
 
     Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-    This project is licensed under the MIT License.
