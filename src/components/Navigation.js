@@ -43,7 +43,7 @@ function Navigation() {
                   <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
                   <li><Link to="/driverlist" className="hover:text-gray-300">Drivers</Link></li>
                   <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
-                  <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li>
+                //  <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li>
                   <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
                 </>
               )}
@@ -51,7 +51,7 @@ function Navigation() {
                 <>
                 <li><Link to="/manager-dashboard" className="hover:text-gray-300">Scheduler</Link></li>
                 
-                <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li></>
+            //    <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li></>
               )}
               {userRole === 'employee'  && (
                 <li><Link to="/employee-portal" className="hover:text-gray-300">My Schedule</Link></li>
