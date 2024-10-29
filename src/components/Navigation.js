@@ -48,7 +48,7 @@ function Navigation() {
                 </>
               )}
               {userRole === 'manager' && (
-                <>
+            
                 <li><Link to="/manager-dashboard" className="hover:text-gray-300">Scheduler</Link></li>
                 
           
