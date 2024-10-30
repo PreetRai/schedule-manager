@@ -47,7 +47,7 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
 
     useEffect(() => {
         fetchShifts();
-    }, [weekStart, storeId,fetchShifts]);
+    }, [weekStart, storeId]);
 
     const fetchDefaultEmployees = async () => {
         const employeesRef = collection(db, 'employees');

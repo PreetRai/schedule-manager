@@ -45,7 +45,8 @@ function App() {
               <PrivateRoute component={CalendarView} requiredRole="admin" />
             } />
              <Route path="/manager-dashboard" element={
-              <PrivateRoute component={Manager}  />
+          
+              <PrivateRoute component={Manager}    />
             } />
              <Route path="/managerlist" element={
               <PrivateRoute component={ManagerList}  />

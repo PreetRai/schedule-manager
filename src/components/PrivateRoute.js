@@ -15,7 +15,7 @@ function PrivateRoute({ component: Component, requiredRole, ...rest }) {
     } else if (userRole === 'employee') {
       return <Navigate to="/employee-portal" />;
     } else if (userRole === 'manager') {
-      return <Navigate to="/manager" />;
+      return <Navigate to="/manager-dashboard" />;
     } else {
       return <Navigate to="/unauthorized" />;
     }
