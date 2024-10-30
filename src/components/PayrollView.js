@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
@@ -13,127 +13,77 @@ function PayrollView() {
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [payrollData, setPayrollData] = useState({});
 
+  const fetchData = useCallback(async () => {
+    if (!selectedStore) return;
+
+    const start = format(currentWeek, 'yyyy-MM-dd');
+    const end = format(endOfWeek(currentWeek, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+
+    const [employeesSnapshot, driversSnapshot, managersSnapshot, shiftsSnapshot, driverShiftsSnapshot, payrollSnapshot] = await Promise.all([
+      getDocs(query(collection(db, 'employees'), where('store_id', '==', selectedStore))),
+      getDocs(query(collection(db, 'drivers'), where('store_id', '==', selectedStore))),
+      getDocs(query(collection(db, 'managers'), where('store_id', '==', selectedStore))),
+      getDocs(query(collection(db, 'shifts'), 
+        where('store_id', '==', selectedStore),
+        where('date', '>=', start),
+        where('date', '<=', end)
+      )),
+      getDocs(query(collection(db, 'driver_shifts'), 
+        where('store_id', '==', selectedStore),
+        where('date', '>=', start),
+        where('date', '<=', end)
+      )),
+      getDocs(query(collection(db, 'weekly_pay'),
+        where('week_start', '==', start),
+        where('store_id', '==', selectedStore)
+      ))
+    ]);
+
+    setEmployees(employeesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    setDrivers(driversSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    setManagers(managersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    
+    const allShifts = [
+      ...shiftsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'employee' })),
+      ...driverShiftsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'driver' }))
+    ];
+    setShifts(allShifts);
+
+    const payrollDataMap = {};
+    payrollSnapshot.forEach(doc => {
+      payrollDataMap[doc.data().person_id] = { ...doc.data(), id: doc.id };
+    });
+    setPayrollData(payrollDataMap);
+  }, [selectedStore, currentWeek]);
+
   useEffect(() => {
     fetchData();
-  }, [currentWeek, selectedStore]);
+  }, [fetchData]);
 
-  const fetchData = async () => {
-    await fetchStores();
-    if (selectedStore) {
-      await Promise.all([
-        fetchEmployees(),
-        fetchDrivers(),
-        fetchManagers(),
-        fetchShifts(),
-      ]);
-    }
-  };
-
-  const fetchEmployees = async () => {
-    let employeesRef = collection(db, 'employees');
-    if (selectedStore) {
-      employeesRef = query(employeesRef, where('store_id', '==', selectedStore));
-    }
-    const querySnapshot = await getDocs(employeesRef);
-    setEmployees(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
-
-  const fetchDrivers = async () => {
-    let driversRef = collection(db, 'drivers');
-    if (selectedStore) {
-      driversRef = query(driversRef, where('store_id', '==', selectedStore));
-    }
-    const querySnapshot = await getDocs(driversRef);
-    setDrivers(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
-
-  const fetchManagers = async () => {
-    let managersRef = collection(db, 'managers');
-    if (selectedStore) {
-      managersRef = query(managersRef, where('store_id', '==', selectedStore));
-    }
-    const querySnapshot = await getDocs(managersRef);
-    setManagers(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-  };
-
-  const fetchShifts = async () => {
-    const start = format(currentWeek, 'yyyy-MM-dd');
-    const end = format(endOfWeek(currentWeek,{weekStartsOn:1}), 'yyyy-MM-dd');
-    
-    // Fetch regular shifts
-    let shiftsQuery = collection(db, 'shifts');
-    if (selectedStore) {
-      shiftsQuery = query(shiftsQuery, where('store_id', '==', selectedStore));
-    }
-    shiftsQuery = query(shiftsQuery,
-      where('date', '>=', start),
-      where('date', '<=', end)
-    );
-    const shiftSnapshot = await getDocs(shiftsQuery);
-    
-    // Fetch driver shifts
-    let driverShiftsQuery = collection(db, 'driver_shifts');
-
-
-    driverShiftsQuery = query(driverShiftsQuery,
-     where('store_id', '==', selectedStore),
-   where('date', '>=', start),
-     where('date', '<=', end)
-    );
-    const driverShiftSnapshot = await getDocs(driverShiftsQuery);
-    console.log(driverShiftSnapshot)
-    // Combine regular shifts and driver shifts
-    const allShifts = [
-      ...shiftSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'employee' })),
-      ...driverShiftSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data(), type: 'driver' }))
-    ];
-    
-    setShifts(allShifts);
-  };
-  
-
-  const fetchStores = async () => {
-    const querySnapshot = await getDocs(collection(db, 'stores'));
-    const fetchedStores = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    setStores(fetchedStores);
-    
-    // Set the first store as default if no store is selected
-    if (!selectedStore && fetchedStores.length > 0) {
-      setSelectedStore(fetchedStores[0].id);
-    }
-  };
-  
-  const fetchPayrollData = async () => {
-    const payrollRef = collection(db, 'weekly_pay');
-    const q = query(payrollRef,
-      where('week_start', '==', format(currentWeek, 'yyyy-MM-dd')),
-      where('store_id', '==', selectedStore )
-    );
-    
-    const querySnapshot = await getDocs(q);
-    
-    let dataMap = {};
-    
-    querySnapshot.forEach(doc => {
-      dataMap[doc.data().person_id] = { ...doc.data(), id: doc.id };
-    });
-    
-    setPayrollData(dataMap);
-  };
+  useEffect(() => {
+    const fetchStores = async () => {
+      const querySnapshot = await getDocs(collection(db, 'stores'));
+      const fetchedStores = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setStores(fetchedStores);
+      
+      if (!selectedStore && fetchedStores.length > 0) {
+        setSelectedStore(fetchedStores[0].id);
+      }
+    };
+    fetchStores();
+  }, []);
 
   const savePayrollEntry = async (personId, status) => {
     const { totalHours, totalEarnings } = calculateTotalHoursAndEarnings(personId);
     
     let tipsAndDeductibles = payrollData[personId]?.tips_and_deductibles || {};
-    
     let tips = tipsAndDeductibles.tips || 0;
     let deductibles = tipsAndDeductibles.deductibles || 0;
-    
     let finalEarnings = totalEarnings + tips - deductibles;
     
     let payload = {
       person_id: personId,
-      store_id: selectedStore || '',
+      store_id: selectedStore,
       week_start: format(currentWeek, 'yyyy-MM-dd'),
       total_hours: totalHours,
       total_earnings: totalEarnings,
@@ -149,7 +99,10 @@ function PayrollView() {
         await addDoc(collection(db, 'weekly_pay'), payload);
       }
       
-      fetchPayrollData();
+      setPayrollData(prev => ({
+        ...prev,
+        [personId]: { ...payload, id: payrollData[personId]?.id }
+      }));
     } catch (error) {
       console.error("Error saving payroll entry:", error);
     }
@@ -172,15 +125,6 @@ function PayrollView() {
 
   const toggleStatus = async (personId) => {
     const newStatus = payrollData[personId]?.status === "Ready" ? "Not Ready" : "Ready";
-    
-    setPayrollData(prev => ({
-      ...prev,
-      [personId]: {
-        ...prev[personId],
-        status: newStatus
-      }
-    }));
-
     await savePayrollEntry(personId, newStatus);
   };
   const calculateTotalHoursAndEarnings = (personId) => {
