@@ -19,7 +19,7 @@ function DriverList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
-
+  const [showForm, setShowForm] = useState(false);
   useEffect(() => {
     fetchDrivers();
     fetchStores();
@@ -135,110 +135,108 @@ function DriverList() {
   if (loading) {
     return <div className="text-center mt-8">Loading...</div>; 
   }
-
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex justify-center">
-      <div className="w-full max-w-7xl flex space-x-8">
-        {/* Driver List */}
-        <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-2xl font-semibold mb-4">Driver List</h1>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="text-left">Name</th>
-                <th className="text-left">Role</th>
-                <th className="text-left">Store</th>
-                <th className="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {drivers.map(driver => (
-                <tr key={driver.id} className="border-b">
-                  <td className="py-2">{driver.name}</td>
-                  <td>{driver.role}</td>
-                  <td>{stores.find(store => store.id === driver.store_id)?.name || 'Unknown'}</td>
-                  <td>
-                    <button onClick={() => handleEdit(driver)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(driver.id, driver.email)} className="text-red-500 mr-2">Delete</button>
-                    <button onClick={() => handleSendPasswordResetEmail(driver.email)} className="text-green-500">Reset Password</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Add/Edit Driver Form */}
-        <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">{editingDriver ? 'Edit Driver' : 'Add Driver'}</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              value={editingDriver ? editingDriver.name : newDriver.name}
-              onChange={handleInputChange}
-              placeholder="Name *"
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              value={editingDriver ? editingDriver.email : newDriver.email}
-              onChange={handleInputChange}
-              placeholder="Email *"
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            <select
-              name="store_id"
-              value={editingDriver ? editingDriver.store_id : newDriver.store_id}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            >
-              <option value="">Select Store *</option>
-              {stores.map(store => (
-                <option key={store.id} value={store.id}>{store.name}</option>
-              ))}
-            </select>
+    <div className="min-h-screen bg-gray-100 py-4 px-4">
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-semibold mb-4">Driver List</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
         
-       
-            <input
-              type="tel"
-              name="phone"
-              value={editingDriver ? editingDriver.phone : newDriver.phone}
-              onChange={handleInputChange}
-              placeholder="Phone (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            <input
-              type="number"
-              name="pay"
-              value={editingDriver ? editingDriver.pay : newDriver.pay}
-              onChange={handleInputChange}
-              placeholder="Hourly Pay (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
-              {editingDriver ? 'Update Driver' : 'Add Driver'}
-            </button>
-            {editingDriver && (
-              <button 
-                type="button" 
-                onClick={() => setEditingDriver(null)} 
-                className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+        <button 
+          onClick={() => setShowForm(!showForm)} 
+          className="w-full mb-4 px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600"
+        >
+          {showForm ? 'Hide Form' : (editingDriver ? 'Edit Driver' : 'Add Driver')}
+        </button>
+
+        {showForm && (
+          <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
+            <h2 className="text-xl font-semibold mb-4">{editingDriver ? 'Edit Driver' : 'Add Driver'}</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                value={editingDriver ? editingDriver.name : newDriver.name}
+                onChange={handleInputChange}
+                placeholder="Name *"
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={editingDriver ? editingDriver.email : newDriver.email}
+                onChange={handleInputChange}
+                placeholder="Email *"
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+              <select
+                name="store_id"
+                value={editingDriver ? editingDriver.store_id : newDriver.store_id}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md"
+                required
               >
-                Cancel Edit
+                <option value="">Select Store *</option>
+                {stores.map(store => (
+                  <option key={store.id} value={store.id}>{store.name}</option>
+                ))}
+              </select>
+              <input
+                type="tel"
+                name="phone"
+                value={editingDriver ? editingDriver.phone : newDriver.phone}
+                onChange={handleInputChange}
+                placeholder="Phone (Optional)"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              <input
+                type="number"
+                name="pay"
+                value={editingDriver ? editingDriver.pay : newDriver.pay}
+                onChange={handleInputChange}
+                placeholder="Hourly Pay (Optional)"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
+                {editingDriver ? 'Update Driver' : 'Add Driver'}
               </button>
-            )}
-          </form>
+              {editingDriver && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setEditingDriver(null);
+                    setShowForm(false);
+                  }} 
+                  className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          {drivers.map(driver => (
+            <div key={driver.id} className="border-b py-4 last:border-b-0">
+              <h3 className="font-semibold">{driver.name}</h3>
+              <p className="text-sm text-gray-600">{driver.role}</p>
+              <p className="text-sm text-gray-600">{stores.find(store => store.id === driver.store_id)?.name || 'Unknown'}</p>
+              <div className="mt-2 space-x-2">
+                <button onClick={() => {
+                  handleEdit(driver);
+                  setShowForm(true);
+                }} className="text-blue-500">Edit</button>
+                <button onClick={() => handleDelete(driver.id, driver.email)} className="text-red-500">Delete</button>
+                <button onClick={() => handleSendPasswordResetEmail(driver.email)} className="text-green-500">Reset Password</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
-
 export default DriverList;
