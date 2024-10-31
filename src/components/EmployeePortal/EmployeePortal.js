@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -18,14 +19,15 @@ function EmployeePortal() {
   const [stores, setStores] = useState([]);
   const storeColors = useStoreColors();
 
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   useEffect(() => {
     fetchStores();
     fetchEmployeeData();
     fetchShifts();
-  }, [currentUser, weekStart,fetchEmployeeData, fetchShifts]);
+  }, [currentUser, weekStart]);
 
+  // ... (keep the existing fetchStores, fetchEmployeeData, fetchShifts, calculateTotalHoursAndPay functions)
   const fetchStores = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, 'stores'));
@@ -36,7 +38,6 @@ function EmployeePortal() {
       console.error(err);
     }
   };
-
   const fetchEmployeeData = async () => {
     try {
       const employeesRef = collection(db, 'employees');
@@ -52,7 +53,6 @@ function EmployeePortal() {
       console.error(err);
     }
   };
-
   const fetchShifts = async () => {
     setLoading(true);
     setError(null);
@@ -80,7 +80,6 @@ function EmployeePortal() {
       setLoading(false);
     }
   };
-
   const calculateTotalHoursAndPay = (shiftList) => {
     let totalMinutes = 0;
     shiftList.forEach(shift => {
@@ -94,77 +93,72 @@ function EmployeePortal() {
     setTotalHours(hours);
     setWeeklyPay(hours * (employeeData?.pay || 0));
   };
-
-  const handlePreviousWeek = () => {
-    setWeekStart(addDays(weekStart, -7));
-  };
-
-  const handleNextWeek = () => {
-    setWeekStart(addDays(weekStart, 7));
-  };
+  const handlePreviousWeek = () => setWeekStart(addDays(weekStart, -7));
+  const handleNextWeek = () => setWeekStart(addDays(weekStart, 7));
 
   const getShiftForDay = (day) => {
     const date = format(addDays(weekStart, days.indexOf(day)), 'yyyy-MM-dd');
     return shifts.find(s => s.date === date);
   };
 
-  if (loading) {
-    return <div className="text-center mt-8">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center mt-8 text-red-500">{error}</div>;
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  if (error) return <div className="flex justify-center items-center h-screen text-red-500">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col items-center">
-      <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg p-6">
-        <h1 className="text-2xl font-semibold mb-4">My Schedule</h1>
-        
-        {employeeData && (
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2">Employee Information</h2>
-            <p><strong>Name:</strong> {employeeData.name}</p>
-            <p><strong>Role:</strong> {employeeData.role}</p>
-            <p><strong>Email:</strong> {employeeData.email}</p>
+    <div className="min-h-screen bg-gray-100 p-4 md:p-6">
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+        <div className="p-6">
+          <h1 className="text-2xl font-semibold mb-4">My Schedule</h1>
+          
+          {employeeData && (
+            <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+              <h2 className="text-xl font-semibold mb-2">Employee Information</h2>
+              <p><strong>Name:</strong> {employeeData.name}</p>
+              <p><strong>Role:</strong> {employeeData.role}</p>
+              <p><strong>Email:</strong> {employeeData.email}</p>
+            </div>
+          )}
+
+          <Legend title="Legend" stores={stores} className=""/>
+
+          <div className="flex justify-between items-center mb-4 mt-4">
+            <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">
+              &lt; Previous
+            </button>
+            <h2 className="text-lg font-bold">
+              {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart), 'MMM d, yyyy')}
+            </h2>
+            <button onClick={handleNextWeek} className="bg-blue-500 text-white px-3 py-1 rounded text-sm">
+              Next &gt;
+            </button>
           </div>
-        )}
 
-        <Legend title={'Legend'}stores={stores} />
-
-        <div className="flex justify-between items-center mb-4">
-          <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
-          <h2 className="text-xl font-bold">{format(weekStart, 'MMMM d, yyyy')} - {format(endOfWeek(weekStart), 'MMMM d, yyyy')}</h2>
-          <button onClick={handleNextWeek} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
-        </div>
-
-        <table className="w-full border-collapse mb-4">
-          <thead>
-            <tr>
-              {days.map(day => (
-                <th key={day} className="border p-2">{day}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              {days.map(day => {
-                const shift = getShiftForDay(day);
-                return (
-                  <td key={day} className={`border p-2 text-center ${shift ? storeColors[shift.store_id] || '' : ''}`}>
-                    {shift ? `${shift.start_time} - ${shift.end_time}` : 'Off'}
-                  </td>
-                );
-              })}
-            </tr>
-          </tbody>
-        </table>
-
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-lg"><strong>Total Hours:</strong> {totalHours.toFixed(2)}</p>
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  {days.map(day => (
+                    <th key={day} className="border p-2 text-sm">{day}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {days.map(day => {
+                    const shift = getShiftForDay(day);
+                    return (
+                      <td key={day} className={`border p-2 text-center text-sm ${shift ? storeColors[shift.store_id] || '' : ''}`}>
+                        {shift ? `${shift.start_time} - ${shift.end_time}` : 'Off'}
+                      </td>
+                    );
+                  })}
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div>
+
+          <div className="mt-6 flex flex-col sm:flex-row justify-between items-center">
+            <p className="text-lg mb-2 sm:mb-0"><strong>Total Hours:</strong> {totalHours.toFixed(2)}</p>
             <p className="text-lg"><strong>Weekly Pay:</strong> ${weeklyPay.toFixed(2)}</p>
           </div>
         </div>

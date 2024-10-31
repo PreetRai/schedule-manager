@@ -1,10 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 function Navigation() {
   const { currentUser, userRole, logout } = useAuth();
   const navigate = useNavigate();
+
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const toggleMenu = () => setIsOpen(!isOpen);
+  const menuItems = [
+    { role: 'admin', items: [
+      { to: '/', text: 'Dashboard' },
+      { to: '/calendar', text: 'Scheduler' },
+      { to: '/managerlist', text: 'Managers' },
+      { to: '/employees', text: 'Employees' },
+      { to: '/driverlist', text: 'Drivers' },
+      { to: '/stores', text: 'Stores' },
+      { to: '/analytics', text: 'Analytics' },
+      { to: '/payroll', text: 'Payroll' },
+    ]},
+    { role: 'manager', items: [
+      { to: '/manager-dashboard', text: 'Scheduler' },
+      { to: '/payroll', text: 'Payroll' },
+    ]},
+    { role: 'employee', items: [
+      { to: '/employee-portal', text: 'My Schedule' },
+    ]},
+  ];
 
   const handleLogout = async () => {
     try {
@@ -15,57 +39,53 @@ function Navigation() {
     }
   };
 
-  return (
-    <nav className="bg-gray-800 text-white p-4">
-      <ul className="flex justify-between items-center ">
-        <ul className="flex justify-start items-center gap-5">
-        <li className="font-bold text-xl">Schedule Manager</li>
-        
-        {currentUser && (
-          
-          <><>|</>
-            <li className="font-bold text-xl">{currentUser.name} ({userRole})</li>
-          </>
-        )}</ul>
-        <ul className="flex justify-end items-center gap-5">
-          {!currentUser ? (
-            <>
-              <li><Link to="/employee-login" className="hover:text-gray-300">Employee Account Claim</Link></li>
-              <li><Link to="/login" className="hover:text-gray-300">Account Login</Link></li>
-            </>
-          ) : (
-            <>
-              {userRole === 'admin' && (
-                <>
-                  <li><Link to="/" className="hover:text-gray-300">Admin Dashboard</Link></li>
-                  <li><Link to="/calendar" className="hover:text-gray-300">Scheduler</Link></li>
-                  <li><Link to="/managerlist" className="hover:text-gray-300">Managers</Link></li>
-                  <li><Link to="/employees" className="hover:text-gray-300">Employees</Link></li>
-                  <li><Link to="/driverlist" className="hover:text-gray-300">Drivers</Link></li>
-                  <li><Link to="/stores" className="hover:text-gray-300">Stores</Link></li>
-                  <li><Link to="/analytics" className="hover:text-gray-300">Analytics</Link></li>
-                  <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li>
-                </>
-              )}
-              {userRole === 'manager' && (<>
-                <li><Link to="/manager-dashboard" className="hover:text-gray-300">Scheduler</Link></li>
-                <li><Link to="/payroll" className="hover:text-gray-300">Payroll</Link></li></>
-              )}
-              {userRole === 'employee'  && (
-                <li><Link to="/employee-portal" className="hover:text-gray-300">My Schedule</Link></li>
-              )}
-               
-              <li>
-                <button className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded" onClick={handleLogout}>
-                  Logout
-                </button>
-              </li>
-            </>
-          )}
-        </ul>
-      </ul>
+  return (<>
+    <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
+      <div className="font-bold text-xl">Schedule Manager</div>
+      {/* {currentUser && (
+        <div className="hidden md:block font-bold text-xl">
+          {currentUser.name} ({userRole})
+        </div>
+      )} */}
+      <button onClick={toggleMenu} className="text-2xl focus:outline-none">
+        {isOpen ? <FaTimes /> : <FaBars />}
+      </button>
     </nav>
-  );
+
+    <div className={`fixed top-0 right-0 h-full w-64 bg-gray-800 text-white transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className="p-4">
+        <button onClick={toggleMenu} className="text-2xl mb-4 focus:outline-none">
+          <FaTimes />
+        </button>
+        {currentUser ? (
+          <>
+            <div className="mb-4 font-bold text-xl">{currentUser.name} ({userRole})</div>
+            {menuItems.find(item => item.role === userRole)?.items.map((item, index) => (
+              <Link key={index} to={item.to} className="block py-2 hover:text-gray-300" onClick={toggleMenu}>
+                {item.text}
+              </Link>
+            ))}
+            <button 
+              className="mt-4 w-full bg-red-500 hover:bg-red-600 px-4 py-2 rounded" 
+              onClick={() => { handleLogout(); toggleMenu(); }}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/employee-login" className="block py-2 hover:text-gray-300" onClick={toggleMenu}>
+              Employee Account Claim
+            </Link>
+            <Link to="/login" className="block py-2 hover:text-gray-300" onClick={toggleMenu}>
+              Account Login
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  </>
+);
 }
 
 export default Navigation;
