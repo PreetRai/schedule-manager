@@ -267,148 +267,101 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
         }
     };
 
+  
     return (
-        <div className="flex flex-col h-screen bg-gray-100">
-            <div className="flex flex-1 overflow-hidden">
-                <div className="w-1/4 p-4 border-r overflow-y-auto hidden">
-                    <Legend stores={stores} title={"Stores"}/>
-                    <div className="mt-6 bg-white overflow-hidden shadow rounded-lg col-span-full">
-                        <div className="px-4 py-5 sm:p-6">
-                            <h2 className="text-xl font-bold mb-4">Employees</h2>
-                            <div className="grid grid-cols-4 gap-2 font-bold text-sm mb-2">
-                                <div className="col-span-2">Name</div>
-                                <div className="text-right">Hours</div>
-                                <div className="text-right">Earnings</div>
-                            </div>
-
-                            <ul
-                                className="space-y-2  max-h-[400px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
-                                {
-                                    storeEmployees.map(employee => {
-                                        const {hours, earnings} = calculateTotalHoursAndEarnings(employee.id);
-
-                                        return (
-                                            <li
-                                                key={employee.id}
-                                                className={`grid grid-cols-4 gap-2 p-2 cursor-pointer rounded ${storeEmployees
-                                                    ?.id === employee.id
-                                                        ? 'bg-blue-100'
-                                                        : ''}`}>
-                                                <div className="col-span-2 truncate">{employee.name}</div>
-                                                <div className="text-right">{hours.toFixed(2)}</div>
-                                                <div className="text-right">${earnings.toFixed(2)}</div>
-                                            </li>
-                                        );
-                                    })
-                                }
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="w-full overflow-x-auto  rounded-lg col-span-full">
-                    <div className="p-4">
-                        <div
-                            className="flex justify-between items-center p-4 bg-white shadow-md rounded-lg mb-4">
-                            <h1 className={`p-2 rounded  ${storeColors[storeId]}`}>{storeName}</h1>
-                            <div className="text-center">
-                                {/* <h1 className=" text-sm transition duration-300 ease-in-out"></h1> */}
-                                <h2 className="text-xl font-bold text-gray-800">
-                                    {format(weekStart, 'MMMM d, yyyy')}
-                                    - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMMM d, yyyy')}
-                                </h2>
-                            </div>
-                            <div className='flex gap-5'>
-                                <button
-                                    onClick={handlePreviousWeek}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
-                                <button
-                                    onClick={handleNextWeek}
-                                    className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
-                            </div>
-                        </div>
-                        <div
-                            className="shadow-md sm:rounded-lg max-h-[600px] overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th
-                                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-gray-50 ">Employee</th>
-                                        {
-                                            days.map(day => (
-                                                <th
-                                                    key={day}
-                                                    scope="col"
-                                                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{day}</th>
-                                            ))
-                                        }
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Hours</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Earnings</th>
-                                        </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-    {storeEmployees.map(employee => {
-        const { hours, earnings } = calculateTotalHoursAndEarnings(employee.id);
-        return (
-            <tr key={employee.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 sticky left-0 bg-inherit">{employee.name}</td>
-                {days.map(day => {
-                    const shift = getShiftForEmployeeAndDay(employee.id, day);
-                    const formatTime12Hour = (time) => {
-                        if (!time) return '';
-                        const [hours, minutes] = time.split(':');
-                        return format(new Date(2023, 0, 1, hours, minutes), 'h:mm a');
-                    };
-                    return (
-                        <td key={day} className="px-1 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <div
-                                className={`p-2 rounded cursor-pointer transition duration-150 ease-in-out ${shift ? storeColors[storeId] || '' : 'hover:bg-gray-100'}`}
-                                onClick={() => handleCellClick(employee, day)}>
-                                {shift ? `${formatTime12Hour(shift.start_time)} - ${formatTime12Hour(shift.end_time)}` : <span className="text-gray-400">+</span>}
-                            </div>
+        <div className="flex flex-col min-h-screen bg-gray-100">
+      
+    
+          <div className="flex-1 overflow-hidden">
+            <Legend stores={stores} title="Stores" rounded="rounded-none mx-4 my-2" />
+            <div className="bg-white shadow-md rounded-lg mx-4 my-2 p-4">
+            <div className="flex justify-between items-center mb-4">
+                    <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
+                      &lt;
+                    </button>
+                    <h2 className="text-sm font-semibold text-center">
+                      {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMM d, yyyy')}
+                    </h2>
+                    <button onClick={handleNextWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
+                      &gt;
+                    </button>
+                  </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full">
+                  <thead>
+                    <tr>
+                      <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky left-0 bg-white">
+                        Employee
+                      </th>
+                      {days.map(day => (
+                        <th key={day} className="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {day.slice(0, 3)}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {storeEmployees.map((employee, index) => (
+                      <tr key={employee.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <td className="px-2 py-1 text-sm font-medium text-gray-900 sticky left-0 bg-inherit whitespace-nowrap">
+                          {employee.name}
                         </td>
-                    );
-                })}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{hours.toFixed(2)}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${earnings.toFixed(2)}</td>
-            </tr>
-        );
-    })}
-</tbody>
-                            </table>
-                        </div>
-                        <div className='flex gap-2 justify-end my-4'>
-
-                            <button
-                                onClick={copyShiftsToNextWeek}
-                                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                Copy Shifts to Next Week
-                            </button>
-                            <button
-                                onClick={clearShifts}
-                                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition duration-300 ease-in-out flex items-center">
-                                Clear Shifts
-                            </button>
-                        </div>
-
-                    </div>
-                    {
-                        showModal && (
-                            <ShiftModal
-                                shift={currentShift}
-                                onSave={handleSaveShift}
-                                onDelete={handleDeleteShift}
-                                onClose={() => setShowModal(false)}
-                                stores={stores}
-                                employeeStoreId={storeId}/>
-
-                        )
-                    }
-                </div>
+                        {days.map(day => {
+                          const shift = getShiftForEmployeeAndDay(employee.id, day);
+                          return (
+                            <td key={day} className="px-1 py-1 text-xs text-gray-500">
+                              <div
+                                className={`p-1 rounded cursor-pointer ${shift ? storeColors[storeId] || '' : 'hover:bg-gray-100'}`}
+                                onClick={() => handleCellClick(employee, day)}
+                              >
+                                {shift ? (
+                                  <>
+                                    <div>{format(parse(shift.start_time, 'HH:mm', new Date()), 'h:mm a')}</div>
+                                    <div>{format(parse(shift.end_time, 'HH:mm', new Date()), 'h:mm a')}</div>
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400">+</span>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
+            <div className="flex flex-col space-y-2 m-4">
+              <button
+                onClick={copyShiftsToNextWeek}
+                className="bg-purple-500 text-white px-4 py-2 rounded"
+              >
+                Copy Shifts to Next Week
+              </button>
+              <button
+                onClick={clearShifts}
+                className="bg-red-500 text-white px-4 py-2 rounded"
+              >
+                Clear Shifts
+              </button>
+            </div>
+          </div>
+    
+          {showModal && (
+            <ShiftModal
+              shift={currentShift}
+              onSave={handleSaveShift}
+              onDelete={handleDeleteShift}
+              onClose={() => setShowModal(false)}
+              stores={stores}
+              employeeStoreId={storeId}
+            />
+          )}
         </div>
-    );
-}
+      );
+    }
+    
 
 function ShiftModal({shift, onSave, onDelete, onClose, stores,
     employeeStoreId}) {
@@ -459,102 +412,82 @@ function ShiftModal({shift, onSave, onDelete, onClose, stores,
     };
 
     return (
-        <div
-            className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-            <div
-                className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-                <h3 className="text-lg font-medium leading-6 text-gray-900 mb-2">
-                    {
-                        shift.id
-                            ? 'Edit Shift'
-                            : 'Add Shift'
-                    }
-                </h3>
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Employee: {shift.employee_name}
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                            Date: {shift.date}
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label
-                            className="block text-gray-700 text-sm font-bold mb-2"
-                            htmlFor="start_time">
-                            Start Time
-                        </label>
-                        <input
-                            type="time"
-                            id="start_time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required="required"/>
-                    </div>
-                    <div className="mb-6">
-                        <label
-                            className="block text-gray-700 text-sm font-bold mb-2"
-                            htmlFor="end_time">
-                            End Time
-                        </label>
-                        <input
-                            type="time"
-                            id="end_time"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required="required"/>
-                    </div>
-
-                    <div className="mb-6">
-                    <select
-                        id="store"
-                        value={storeId}
-                        onChange={(e) => setStoreId(e.target.value)}
-                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        required="required">
-                        {
-                            stores.map(
-                                store => (<option key={store.id} value={store.id}>{store.name}  {
-                                    store.id === employeeStoreId
-                                        ? '(Default)'
-                                        : ''
-                                }</option>)
-                            )
-                        }
-                    </select>
-  </div>
-                    <div className="flex items-center justify-between">
-                        <button
-                            type="submit"
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Save
-                        </button>
-                        {
-                            shift.id && (
-                                <button
-                                    type="button"
-                                    onClick={() => onDelete(shift.id)}
-                                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                    Delete
-                                </button>
-                            )
-                        }
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
-            </div>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 mb-4">
+              {shift.id ? 'Edit Shift' : 'Add Shift'}
+            </h3>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Employee: {shift.employee_name}</label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date: {shift.date}</label>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="start_time">Start Time</label>
+                <input
+                  type="time"
+                  id="start_time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="end_time">End Time</label>
+                <input
+                  type="time"
+                  id="end_time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700" htmlFor="store">Store</label>
+                <select
+                  id="store"
+                  value={storeId}
+                  onChange={(e) => setStoreId(e.target.value)}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  {stores.map(store => (
+                    <option key={store.id} value={store.id}>{store.name} {store.id === employeeStoreId ? '(Default)' : ''}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-between">
+                <button
+                  type="submit"
+                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Save
+                </button>
+                {shift.id && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(shift.id)}
+                    className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-    );
-}
+      );
+    }
+    
 
 export default StoreCalendarView;
