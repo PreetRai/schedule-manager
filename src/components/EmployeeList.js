@@ -20,6 +20,7 @@ function EmployeeList() {
   const [error, setError] = useState(null);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const [showForm, setShowForm] = useState(false);
   useEffect(() => {
     fetchEmployees();
     fetchStores();
@@ -135,106 +136,105 @@ function EmployeeList() {
   if (loading) {
     return <div className="text-center mt-8">Loading...</div>; 
   }
-
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex justify-center">
-      <div className="w-full max-w-7xl flex space-x-8">
-        {/* Employee List */}
-        <div className="w-2/3 bg-white shadow-lg rounded-lg p-6">
-          <h1 className="text-2xl font-semibold mb-4">Employee List</h1>
-          {error && <p className="text-red-500 mb-4">{error}</p>}
-          {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="text-left">Name</th>
-                <th className="text-left">Role</th>
-                <th className="text-left">Store</th>
-                <th className="text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {employees.map(employee => (
-                <tr key={employee.id} className="border-b">
-                  <td className="py-2">{employee.name}</td>
-                  <td>{employee.role}</td>
-                  <td>{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</td>
-                  <td>
-                    <button onClick={() => handleEdit(employee)} className="text-blue-500 mr-2">Edit</button>
-                    <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500 mr-2">Delete</button>
-                    <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Add/Edit Employee Form */}
-        <div className="w-1/3 bg-white shadow-lg rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              value={editingEmployee ? editingEmployee.name : newEmployee.name}
-              onChange={handleInputChange}
-              placeholder="Name *"
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              value={editingEmployee ? editingEmployee.email : newEmployee.email}
-              onChange={handleInputChange}
-              placeholder="Email *"
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-            <select
-              name="store_id"
-              value={editingEmployee ? editingEmployee.store_id : newEmployee.store_id}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            >
-              <option value="">Select Store *</option>
-              {stores.map(store => (
-                <option key={store.id} value={store.id}>{store.name}</option>
-              ))}
-            </select>
+    <div className="min-h-screen bg-gray-100 py-4 px-4">
+      <div className="max-w-md mx-auto">
+        <h1 className="text-2xl font-semibold mb-4">Employee List</h1>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {successMessage && <p className="text-green-500 mb-4">{successMessage}</p>}
         
-       
-            <input
-              type="tel"
-              name="phone"
-              value={editingEmployee ? editingEmployee.phone : newEmployee.phone}
-              onChange={handleInputChange}
-              placeholder="Phone (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            <input
-              type="number"
-              name="pay"
-              value={editingEmployee ? editingEmployee.pay : newEmployee.pay}
-              onChange={handleInputChange}
-              placeholder="Hourly Pay (Optional)"
-              className="w-full px-3 py-2 border rounded-md"
-            />
-            <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
-              {editingEmployee ? 'Update Employee' : 'Add Employee'}
-            </button>
-            {editingEmployee && (
-              <button 
-                type="button" 
-                onClick={() => setEditingEmployee(null)} 
-                className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+        <button 
+          onClick={() => setShowForm(!showForm)} 
+          className="w-full mb-4 px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600"
+        >
+          {showForm ? 'Hide Form' : (editingEmployee ? 'Edit Employee' : 'Add Employee')}
+        </button>
+
+        {showForm && (
+          <div className="bg-white shadow-lg rounded-lg p-4 mb-6">
+            <h2 className="text-xl font-semibold mb-4">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                value={editingEmployee ? editingEmployee.name : newEmployee.name}
+                onChange={handleInputChange}
+                placeholder="Name *"
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                value={editingEmployee ? editingEmployee.email : newEmployee.email}
+                onChange={handleInputChange}
+                placeholder="Email *"
+                className="w-full px-3 py-2 border rounded-md"
+                required
+              />
+              <select
+                name="store_id"
+                value={editingEmployee ? editingEmployee.store_id : newEmployee.store_id}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md"
+                required
               >
-                Cancel Edit
+                <option value="">Select Store *</option>
+                {stores.map(store => (
+                  <option key={store.id} value={store.id}>{store.name}</option>
+                ))}
+              </select>
+              <input
+                type="tel"
+                name="phone"
+                value={editingEmployee ? editingEmployee.phone : newEmployee.phone}
+                onChange={handleInputChange}
+                placeholder="Phone (Optional)"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              <input
+                type="number"
+                name="pay"
+                value={editingEmployee ? editingEmployee.pay : newEmployee.pay}
+                onChange={handleInputChange}
+                placeholder="Hourly Pay (Optional)"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+              <button type="submit" className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">
+                {editingEmployee ? 'Update Employee' : 'Add Employee'}
               </button>
-            )}
-          </form>
+              {editingEmployee && (
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setEditingEmployee(null);
+                    setShowForm(false);
+                  }} 
+                  className="w-full px-4 py-2 text-white bg-gray-500 rounded-md hover:bg-gray-600"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white shadow-lg rounded-lg p-4">
+          {employees.map(employee => (
+            <div key={employee.id} className="border-b py-4 last:border-b-0">
+              <h3 className="font-semibold">{employee.name}</h3>
+              <p className="text-sm text-gray-600">{employee.role}</p>
+              <p className="text-sm text-gray-600">{stores.find(store => store.id === employee.store_id)?.name || 'Unknown'}</p>
+              <div className="mt-2 space-x-2">
+                <button onClick={() => {
+                  handleEdit(employee);
+                  setShowForm(true);
+                }} className="text-blue-500">Edit</button>
+                <button onClick={() => handleDelete(employee.id, employee.email)} className="text-red-500">Delete</button>
+                <button onClick={() => handleSendPasswordResetEmail(employee.email)} className="text-green-500">Reset Password</button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
