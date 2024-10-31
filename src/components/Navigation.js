@@ -42,11 +42,6 @@ function Navigation() {
   return (<>
     <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
       <div className="font-bold text-xl">Schedule Manager</div>
-      {/* {currentUser && (
-        <div className="hidden md:block font-bold text-xl">
-          {currentUser.name} ({userRole})
-        </div>
-      )} */}
       <button onClick={toggleMenu} className="text-2xl focus:outline-none">
         {isOpen ? <FaTimes /> : <FaBars />}
       </button>
