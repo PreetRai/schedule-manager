@@ -10,10 +10,13 @@ function DriverTipsTracker() {
   const [selectedDriverId, setSelectedDriverId] = useState('');
   const [platformTips, setPlatformTips] = useState([{ platform: '', amount: '' }]);
   const [editingTipId, setEditingTipId] = useState(null);
+  const [platforms, setPlatforms] = useState([]);
 
   useEffect(() => {
     fetchDrivers();
     fetchTips();
+    
+    fetchPlatforms();
   }, [selectedDate]);
 
   const fetchDrivers = async () => {
@@ -28,32 +31,31 @@ function DriverTipsTracker() {
     const querySnapshot = await getDocs(q);
     setTips(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
-
+  const fetchPlatforms = async () => {
+    const platformsRef = collection(db, 'platforms');
+    const querySnapshot = await getDocs(platformsRef);
+    setPlatforms(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+  };
   const handleAddOrUpdateTip = async (e) => {
     e.preventDefault();
     if (!selectedDriverId) return;
 
     try {
-      // Calculate the total of all platform tips
       const total = platformTips.reduce((sum, tip) => sum + parseFloat(tip.amount), 0);
-
-      // Calculate the adjusted total (90% of the original total)
       const adjustedTotal = total * 0.9;
 
       const tipData = {
         driverId: selectedDriverId,
         platforms: platformTips,
         date: selectedDate,
-        total: total, // Original total
-        adjustedTotal: adjustedTotal // Total after 10% deduction
+        total: total,
+        adjustedTotal: adjustedTotal
       };
 
       if (editingTipId) {
-        // Update existing tip
         const tipRef = doc(db, 'driver_tips', editingTipId);
         await updateDoc(tipRef, tipData);
       } else {
-        // Add new tip
         await addDoc(collection(db, 'driver_tips'), tipData);
       }
       resetForm();
@@ -62,7 +64,6 @@ function DriverTipsTracker() {
       console.error("Error adding/updating tip:", error);
     }
   };
-
   const handleDeleteTip = async (tipId) => {
     if (window.confirm('Are you sure you want to delete this tip?')) {
       try {
@@ -79,6 +80,7 @@ function DriverTipsTracker() {
     setSelectedDriverId('');
     setPlatformTips([{ platform: '', amount: '' }]);
     setEditingTipId(null);
+    
   };
 
   const restructureTips = (tips) => {
@@ -151,18 +153,21 @@ function DriverTipsTracker() {
         </div>
         {platformTips.map((tip, index) => (
           <div key={index} className="flex flex-col md:flex-row mb-4">
-            <input
-              type="text"
-              placeholder="Platform"
+               <select
               value={tip.platform}
               onChange={(e) => {
                 const newPlatformTips = [...platformTips];
                 newPlatformTips[index].platform = e.target.value;
                 setPlatformTips(newPlatformTips);
               }}
-              className="flex-1 border p-2 rounded mb-2 md:mb-0 md:mr-2"
+              className="border p-2 rounded mr-2"
               required
-            />
+            >
+              <option value="">Select Platform</option>
+              {platforms.map(platform => (
+                <option key={platform.id} value={platform.name}>{platform.name}</option>
+              ))}
+            </select>
             <input
               type="number"
               step="0.01"

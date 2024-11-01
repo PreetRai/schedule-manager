@@ -19,6 +19,7 @@ import ManagerList from './components/ManagerList';
 import DriverList from './components/DriversList';
 import PayrollView from './components/PayrollView';
 import DriverTipsTracker from './components/DriverTipTracker';
+import PlatformManager from './components/Platform Manager';
 function App() {
   return (
     <AuthProvider>
@@ -61,6 +62,15 @@ function App() {
   element={
     <PrivateRoute
       component={PayrollView}
+      requiredRoles={["admin", "manager"]}
+    />
+  }
+/>
+<Route
+  path="/platforms"
+  element={
+    <PrivateRoute
+      component={PlatformManager}
       requiredRoles={["admin", "manager"]}
     />
   }

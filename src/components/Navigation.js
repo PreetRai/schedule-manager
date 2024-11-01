@@ -18,6 +18,7 @@ function Navigation() {
       { to: '/employees', text: 'Employees List' },
       { to: '/driverlist', text: 'Drivers List' },
       { to: '/stores', text: 'Stores List' },
+      { to: '/platforms', text: 'Platform List' },
       { to: '/driver-tips', text:'Driver Tips'},
       { to: '/payroll', text: 'Payroll' },
       { to: '/analytics', text: 'Analytics' },
@@ -26,6 +27,7 @@ function Navigation() {
       { to: '/manager-dashboard', text: 'Scheduler' },
       { to: '/driver-tips', text:'Tips'},
       { to: '/payroll', text: 'Payroll' },
+      { to: '/platforms', text: 'Platform List' },
     ]},
     { role: 'employee', items: [
       { to: '/employee-portal', text: 'My Schedule' },
