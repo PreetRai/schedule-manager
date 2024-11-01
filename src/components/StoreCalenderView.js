@@ -273,19 +273,28 @@ function StoreCalendarView({storeId, stores, onShiftUpdate}) {
       
     
           <div className="flex-1 overflow-hidden">
-            <Legend stores={stores} title="Stores" rounded="rounded-none mx-4 my-2" />
             <div className="bg-white shadow-md rounded-lg mx-4 my-2 p-4">
-            <div className="flex justify-between items-center mb-4">
-                    <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
-                      &lt;
-                    </button>
-                    <h2 className="text-sm font-semibold text-center">
-                      {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMM d, yyyy')}
-                    </h2>
-                    <button onClick={handleNextWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
-                      &gt;
-                    </button>
-                  </div>
+          
+      <div className="flex justify-between items-center p-4 bg-white shadow-md mb-4">
+        {storeId ? (
+          <h1 className={`p-2 rounded ${storeColors[storeId]}`}>
+            {storeName || "Loading..."}
+          </h1>
+        ) : (
+          <h1 className='p-2 rounded bg-blue-500 text-white'>Master Calendar</h1>
+        )}
+        <h2 className="text-sm font-semibold text-center">
+          {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart, {weekStartsOn: 1}), 'MMM d, yyyy')}
+        </h2>
+        <div className="flex items-center space-x-2">
+          <button onClick={handlePreviousWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
+            &lt;
+          </button>
+          <button onClick={handleNextWeek} className="bg-blue-500 text-white px-3 py-1 rounded">
+            &gt;
+          </button>
+        </div>
+      </div>
               <div className="overflow-x-auto">
                 <table className="min-w-full">
                   <thead>
