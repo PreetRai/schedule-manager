@@ -40,7 +40,7 @@ function Navigation() {
   };
 
   return (<>
-    <nav className="bg-gray-800 text-white p-4 flex justify-between items-center">
+    <nav className="bg-gray-800 text-white p-4 flex justify-between items-center z-50">
       <div className="font-bold text-xl">Schedule Manager</div>
       <button onClick={toggleMenu} className="text-2xl focus:outline-none">
         {isOpen ? <FaTimes /> : <FaBars />}
