@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes,Navigate  } from 'react-router-dom';
 import Navigation from './components/Navigation';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -71,6 +71,7 @@ function App() {
             <Route path="/employee-portal" element={
               <PrivateRoute component={EmployeePortal} />
             } />
+             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>
       </Router>

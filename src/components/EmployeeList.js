@@ -91,7 +91,7 @@ function EmployeeList() {
         name: '',
         email: '',
         phone: '',
-        role: '',
+        role: 'employee',
         pay: 0,
         store_id: ''
       });
