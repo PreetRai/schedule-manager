@@ -161,97 +161,95 @@ function PayrollView() {
     return { totalHours, totalEarnings };
   };
   
-
   return (
-    <div className="payroll-view p-4">
+    <div className="payroll-view p-4 max-w-full overflow-x-hidden">
       <h1 className="text-2xl font-bold mb-4">Weekly Payroll</h1>
       
-    
-      <div className="flex justify-between items-center mb-6">
-      <select
-  value={selectedStore}
-  onChange={(e) => setSelectedStore(e.target.value)}
-  className="shadow rounded p-2 border"
->
-  <option value="">Select a Store</option>
-  {stores.map(store => (
-    <option key={store.id} value={store.id}>{store.name}</option>
-  ))}
-</select>
-<h1 className="text-xl font-bold mb-4 ">{format(currentWeek, 'MMMM d, y')}</h1>
-
-        <div className="flex gap-2">
+      <div className="flex flex-col mb-6 space-y-4">
+        <select
+          value={selectedStore}
+          onChange={(e) => setSelectedStore(e.target.value)}
+          className="shadow rounded p-2 border w-full"
+        >
+          <option value="">Select a Store</option>
+          {stores.map(store => (
+            <option key={store.id} value={store.id}>{store.name}</option>
+          ))}
+        </select>
+        <h2 className="text-xl font-bold text-center">{format(currentWeek, 'MMMM d, y')}</h2>
+        <div className="flex gap-2 justify-center">
           <button onClick={() => setCurrentWeek(addWeeks(currentWeek, -1))} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
           <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
         </div>
       </div>
-<div className='flex flex-col gap-5 '>
 
-<h1 className='m-4 text-xl font-bold flex justify-center'>Employees</h1>
-      <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
-        <thead>
-          <tr className="bg-gray-50">
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours Worked</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tips</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deductibles</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final Earnings</th>
-            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th className="px-6 py-3"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200">   
-          {[...employees, ...managers].map(person => {
-            const { totalHours, totalEarnings } = calculateTotalHoursAndEarnings(person.id);
-            
-            let tips = payrollData[person.id]?.tips_and_deductibles?.tips || 0;
-            let deductibles = payrollData[person.id]?.tips_and_deductibles?.deductibles || 0;
-            
-            let finalEarnings = totalEarnings + tips - deductibles;
-
-            return (
-              <tr key={person.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{person.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{totalHours.toFixed(2)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">${totalEarnings.toFixed(2)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    value={tips}
-                    onChange={handleInputChange(person.id, 'tips')}
-                    className="w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input
-                    value={deductibles}
-                    onChange={handleInputChange(person.id, 'deductibles')}
-                    className="w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap font-bold">${finalEarnings.toFixed(2)}</td>
-                <td className={`px-6 py-4 whitespace-nowrap font-bold ${payrollData[person.id]?.status === "Ready" ? "text-green-600" : "text-red-600"}`}>
-                  {payrollData[person.id]?.status || "Not Ready"}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                <button 
-  onClick={() => toggleStatus(person.id)}
-  className={`${
-    payrollData[person.id]?.status === "Ready" 
-      ? "bg-red-500 hover:bg-red-600" 
-      : "bg-green-500 hover:bg-green-600"
-  } text-white px-4 py-2 rounded focus:outline-none focus:shadow-outline`}
->
-  {payrollData[person.id]?.status === "Ready" ? "Mark Not Ready" : "Mark Ready"}
-</button>
-                </td>
+      <div className='flex flex-col gap-5'>
+        <h2 className='m-4 text-xl font-bold text-center'>Employees</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
+            <thead>
+              <tr className="bg-gray-50">
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Earnings</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tips</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deduct.</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Final</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-4 py-2"></th>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">   
+              {[...employees, ...managers].map(person => {
+                const { totalHours, totalEarnings } = calculateTotalHoursAndEarnings(person.id);
+                let tips = payrollData[person.id]?.tips_and_deductibles?.tips || 0;
+                let deductibles = payrollData[person.id]?.tips_and_deductibles?.deductibles || 0;
+                let finalEarnings = totalEarnings + tips - deductibles;
+
+                return (
+                  <tr key={person.id}>
+                    <td className="px-4 py-2 whitespace-nowrap">{person.name}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">{totalHours.toFixed(2)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">${totalEarnings.toFixed(2)}</td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      <input
+                        value={tips}
+                        onChange={handleInputChange(person.id, 'tips')}
+                        className="w-full border-gray-300 rounded-md shadow-sm"
+                      />
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      <input
+                        value={deductibles}
+                        onChange={handleInputChange(person.id, 'deductibles')}
+                        className="w-full border-gray-300 rounded-md shadow-sm"
+                      />
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap font-bold">${finalEarnings.toFixed(2)}</td>
+                    <td className={`px-4 py-2 whitespace-nowrap font-bold ${payrollData[person.id]?.status === "Ready" ? "text-green-600" : "text-red-600"}`}>
+                      {payrollData[person.id]?.status || "Not Ready"}
+                    </td>
+                    <td className="px-4 py-2 whitespace-nowrap">
+                      <button 
+                        onClick={() => toggleStatus(person.id)}
+                        className={`${
+                          payrollData[person.id]?.status === "Ready" 
+                            ? "bg-red-500 hover:bg-red-600" 
+                            : "bg-green-500 hover:bg-green-600"
+                        } text-white px-2 py-1 rounded text-sm focus:outline-none focus:shadow-outline`}
+                      >
+                        {payrollData[person.id]?.status === "Ready" ? "Unmark" : "Mark"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
    
-      <h1 className='m-4 text-xl font-bold  flex justify-center'>Drivers</h1>
+        <h2 className='m-4 text-xl font-bold text-center'>Drivers</h2>
+        <div className="overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
         <thead>
           <tr className="bg-gray-50">
@@ -311,8 +309,10 @@ function PayrollView() {
             );
           })}
         </tbody>
-      </table>
-      </div> </div>
+        </table>
+        </div>
+      </div>
+    </div>
   );
 }
 
