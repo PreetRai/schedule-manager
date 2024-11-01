@@ -18,6 +18,7 @@ import Manager from './components/Manager Portal/Manager';
 import ManagerList from './components/ManagerList';
 import DriverList from './components/DriversList';
 import PayrollView from './components/PayrollView';
+import DriverTipsTracker from './components/DriverTipTracker';
 function App() {
   return (
     <AuthProvider>
@@ -54,6 +55,7 @@ function App() {
             <Route path="/driverlist" element={
               <PrivateRoute component={DriverList}  />
             } />
+            <Route path="/driver-tips" element={<DriverTipsTracker />} requiredRole={["manager","admin"]}/>
            <Route
   path="/payroll"
   element={

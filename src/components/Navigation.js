@@ -14,15 +14,17 @@ function Navigation() {
     { role: 'admin', items: [
       { to: '/', text: 'Dashboard' },
       { to: '/calendar', text: 'Scheduler' },
-      { to: '/managerlist', text: 'Managers' },
-      { to: '/employees', text: 'Employees' },
-      { to: '/driverlist', text: 'Drivers' },
-      { to: '/stores', text: 'Stores' },
-      { to: '/analytics', text: 'Analytics' },
+      { to: '/managerlist', text: 'Managers List' },
+      { to: '/employees', text: 'Employees List' },
+      { to: '/driverlist', text: 'Drivers List' },
+      { to: '/stores', text: 'Stores List' },
+      { to: '/driver-tips', text:'Driver Tips'},
       { to: '/payroll', text: 'Payroll' },
+      { to: '/analytics', text: 'Analytics' },
     ]},
     { role: 'manager', items: [
       { to: '/manager-dashboard', text: 'Scheduler' },
+      { to: '/driver-tips', text:'Tips'},
       { to: '/payroll', text: 'Payroll' },
     ]},
     { role: 'employee', items: [
