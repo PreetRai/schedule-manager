@@ -105,7 +105,7 @@ function DriverTipsTracker() {
 
   const getDayTips = (driverId, date) => {
     const dayTip = tips.find(tip => tip.driverId === driverId && tip.date === date);
-    return dayTip ? dayTip.tips : [];
+    return dayTip && dayTip.tips ? dayTip.tips : [];
   };
 
   const handleCellClick = (driverId, date) => {
