@@ -20,6 +20,7 @@ import DriverList from './components/DriversList';
 import PayrollView from './components/PayrollView';
 import DriverTipsTracker from './components/DriverTipTracker';
 import PlatformManager from './components/Platform Manager';
+import DriverPortal from './components/DriverPortal/DriverPortal';
 function App() {
   return (
     <AuthProvider>
@@ -32,7 +33,7 @@ function App() {
             <Route path="/signup-Preet@310399" element={<Signup />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/employee-login" element={<EmployeeLogin />} />
-            
+            <Route path="/driver-dashboard" element={<DriverPortal />} />
             <Route path="/employee-dashboard" element={<EmployeePortal />} />
             <Route path="/" element={
               <PrivateRoute component={Dashboard} requiredRole="admin" />

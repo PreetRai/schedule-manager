@@ -32,6 +32,12 @@ function Navigation() {
     { role: 'employee', items: [
       { to: '/employee-portal', text: 'My Schedule' },
     ]},
+    { role: 'driver', items: [
+      { to: '/driver-portal', text: 'My Schedule' },
+    ]},
+    { role: 'employee', items: [
+      { to: '/drivers-portal', text: 'My Schedule' },
+    ]},
   ];
 
   const handleLogout = async () => {
