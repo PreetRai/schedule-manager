@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, startOfWeek, endOfWeek, addWeeks } from 'date-fns';
-
+import { useAuth } from '../contexts/AuthContext';
 function PayrollView() {
+  
+  const { currentUser } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -12,7 +14,61 @@ function PayrollView() {
   const [selectedStore, setSelectedStore] = useState('');
   const [currentWeek, setCurrentWeek] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [payrollData, setPayrollData] = useState({});
+  const [activeTable, setActiveTable] = useState('employees');
+  useEffect(() => {
+    fetchManagerStores();
+  }, [currentUser]);
 
+  useEffect(() => {
+    if (selectedStore) {
+      fetchData();
+    }
+  }, [currentWeek, selectedStore]);
+  const ToggleButton = ({ activeTable, setActiveTable }) => (
+    <div className="flex justify-center mb-4">
+      <button
+        className={`px-4 py-2 rounded-l-lg ${activeTable === 'employees' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+        onClick={() => setActiveTable('employees')}
+      >
+        Employees
+      </button>
+      <button
+        className={`px-4 py-2 rounded-r-lg ${activeTable === 'drivers' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+        onClick={() => setActiveTable('drivers')}
+      >
+        Drivers
+      </button>
+    </div>
+  );
+  const fetchManagerStores = async () => {
+    if (currentUser.role !== 'manager') {
+      console.error('Current user is not a manager');
+      return;
+    }
+  
+    const managerStoresRef = collection(db, 'managers');
+    const q = query(managerStoresRef, where('id', '==', currentUser.id));
+    const querySnapshot = await getDocs(q);
+    
+    const storeIds = querySnapshot.docs.map(doc => doc.data().store_id);
+    
+    if (storeIds.length === 0) {
+      setStores([]);
+      return;
+    }
+    
+    const storesRef = collection(db, 'stores');
+    const storesQuery = query(storesRef, where('__name__', 'in', storeIds));
+    const storesSnapshot = await getDocs(storesQuery);
+    
+    const fetchedStores = storesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log(fetchedStores)
+    setStores(fetchedStores);
+  
+    if (fetchedStores.length === 1) {
+      setSelectedStore(fetchedStores[0].id);
+    }
+  };
   const fetchData = useCallback(async () => {
     if (!selectedStore) return;
 
@@ -162,28 +218,35 @@ function PayrollView() {
   };
   
   return (
-    <div className="payroll-view p-4 max-w-full overflow-x-hidden">
-      <h1 className="text-2xl font-bold mb-4">Weekly Payroll</h1>
-      
-      <div className="flex flex-col mb-6 space-y-4">
+    <div className="payroll-view p-4">
+    <h1 className="text-2xl font-bold mb-4">Weekly Payroll</h1>
+    <div className="flex justify-between items-center mb-6">
+      {stores.length > 1 ? (
         <select
           value={selectedStore}
           onChange={(e) => setSelectedStore(e.target.value)}
-          className="shadow rounded p-2 border w-full"
+          className="shadow rounded p-2 border"
         >
           <option value="">Select a Store</option>
           {stores.map(store => (
             <option key={store.id} value={store.id}>{store.name}</option>
           ))}
         </select>
-        <h2 className="text-xl font-bold text-center">{format(currentWeek, 'MMMM d, y')}</h2>
-        <div className="flex gap-2 justify-center">
-          <button onClick={() => setCurrentWeek(addWeeks(currentWeek, -1))} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
-          <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
-        </div>
+      ) : (
+        <h2 className="text-xl">{stores[0]?.name}</h2>
+      )}
+      <div className="flex gap-2 items-center">
+      
+  
+        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, -1))} className="bg-blue-500 text-white px-4 py-2 rounded">Previous Week</button>
+        <h2 className="text-x1 font-bold text-center">{format(currentWeek,'MMMM d, y')}</h2>
+        <button onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))} className="bg-blue-500 text-white px-4 py-2 rounded">Next Week</button>
       </div>
-
-      <div className='flex flex-col gap-5'>
+    </div>
+    
+      <div className='flex flex-col gap-5'> 
+        <ToggleButton activeTable={activeTable} setActiveTable={setActiveTable} />
+        {activeTable === 'employees' && (  <div>
         <h2 className='m-4 text-xl font-bold text-center'>Employees</h2>
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
@@ -247,7 +310,9 @@ function PayrollView() {
             </tbody>
           </table>
         </div>
-   
+        </div>)}
+        {activeTable === 'drivers' && (
+        <div>
         <h2 className='m-4 text-xl font-bold text-center'>Drivers</h2>
         <div className="overflow-x-auto">
       <table className="min-w-full bg-white border border-gray-200 shadow-md rounded-lg">
@@ -311,6 +376,7 @@ function PayrollView() {
         </tbody>
         </table>
         </div>
+        </div>)}
       </div>
     </div>
   );
