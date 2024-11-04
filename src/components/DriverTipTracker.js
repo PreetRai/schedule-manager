@@ -1,7 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where,getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format, startOfWeek, addDays } from 'date-fns';
+
+function TipEditModal({ editingTip, platforms,onSave, onCancel, onDelete }) {
+  const [tipData, setTipData] = useState(editingTip.tips || []);
+
+  const handleTipChange = (platform, amount) => {
+    const newTipData = tipData.map(tip => 
+      tip.platform === platform ? { ...tip, amount: parseFloat(amount) || 0 } : tip
+    );
+    if (!newTipData.find(tip => tip.platform === platform)) {
+      newTipData.push({ platform, amount: parseFloat(amount) || 0 });
+    }
+    setTipData(newTipData);
+  };
+
+  const handleSave = () => {
+    const total = tipData.reduce((sum, tip) => sum + (tip.amount || 0), 0);
+    onSave({
+      ...editingTip,
+      tips: tipData,
+      total,
+      adjustedTotal: total * 0.9
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
+      <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <h3 className="text-lg font-bold mb-4">Edit Tips for {format(new Date(editingTip.date), 'MMM dd, yyyy')}</h3>
+        {platforms.map(platform => (
+          <div key={platform.id} className="mb-4">
+            <label className="block mb-2">{platform.name}:</label>
+            <input
+              type="number"
+              value={tipData.find(tip => tip.platform === platform.name)?.amount || ''}
+              onChange={(e) => handleTipChange(platform.name, e.target.value)}
+              className="w-full border p-2 rounded"
+            />
+          </div>
+        ))}
+        <div className="flex justify-between">
+        <button onClick={handleSave} className="bg-blue-500 text-white px-4 py-2 rounded">
+            Save
+          </button>
+          {editingTip.id && (
+            <button onClick={onDelete} className="bg-red-500 text-white px-4 py-2 rounded">
+              Delete
+            </button>
+          )}
+          <button onClick={onCancel} className="bg-gray-300 px-4 py-2 rounded">
+            Cancel
+          </button>
+
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function DriverTipsTracker() {
   const [drivers, setDrivers] = useState([]);
@@ -9,19 +66,19 @@ function DriverTipsTracker() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [platforms, setPlatforms] = useState([]);
   const [editingTip, setEditingTip] = useState(null);
-  const [editingCell, setEditingCell] = useState(null);
+
   useEffect(() => {
     fetchDrivers();
     fetchTips();
     fetchPlatforms();
   }, [selectedDate]);
 
-  // ... (keep all the fetch functions as they are)
   const fetchDrivers = async () => {
     const driversRef = collection(db, 'drivers');
     const querySnapshot = await getDocs(driversRef);
     setDrivers(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
+
   const fetchTips = async () => {
     const weekStart = startOfWeek(new Date(selectedDate), { weekStartsOn: 1 });
     const weekEnd = addDays(weekStart, 6);
@@ -34,6 +91,7 @@ function DriverTipsTracker() {
     const querySnapshot = await getDocs(q);
     setTips(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
+
   const fetchPlatforms = async () => {
     const platformsRef = collection(db, 'platforms');
     const querySnapshot = await getDocs(platformsRef);
@@ -44,98 +102,52 @@ function DriverTipsTracker() {
     const weekStart = startOfWeek(new Date(selectedDate), { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => format(addDays(weekStart, i), 'yyyy-MM-dd'));
   };
-  
+
   const getDayTips = (driverId, date) => {
     const dayTip = tips.find(tip => tip.driverId === driverId && tip.date === date);
-    return dayTip ? dayTip.platforms : [];
+    return dayTip ? dayTip.tips : [];
   };
-  const handleCellClick = (driverId, date, platform) => {
-    const existingTip = tips.find(tip => 
-      tip.driverId === driverId && 
-      tip.date === date && 
-      tip.platforms.some(p => p.platform === platform)
-    );
 
+  const handleCellClick = (driverId, date) => {
+    const existingTip = tips.find(tip => tip.driverId === driverId && tip.date === date);
     setEditingTip({
       driverId,
       date,
-      platform,
-      amount: existingTip ? existingTip.platforms.find(p => p.platform === platform).amount : '',
+      tips: existingTip ? existingTip.tips : [],
       id: existingTip ? existingTip.id : null
     });
   };
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    const { driverId, date, platform, amount, id } = editingTip;
-  
-    if (id) {
+  const handleFormSubmit = async (updatedTip) => {
+    if (updatedTip.id) {
       // Update existing tip
-      const tipRef = doc(db, 'driver_tips', id);
-      const tipDoc = await getDoc(tipRef);
-      if (tipDoc.exists()) {
-        const tipData = tipDoc.data();
-        let updatedPlatforms = [...tipData.platforms];
-        const existingPlatformIndex = updatedPlatforms.findIndex(p => p.platform === platform);
-  
-        if (existingPlatformIndex !== -1) {
-          updatedPlatforms[existingPlatformIndex].amount = parseFloat(amount);
-        } else {
-          updatedPlatforms.push({ platform, amount: parseFloat(amount) });
-        }
-  
-        const total = updatedPlatforms.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-        const adjustedTotal = total * 0.9;
-  
-        await updateDoc(tipRef, { 
-          platforms: updatedPlatforms,
-          total,
-          adjustedTotal
-        });
-      }
+      const tipRef = doc(db, 'driver_tips', updatedTip.id);
+      await updateDoc(tipRef, {
+        tips: updatedTip.tips,
+        total: updatedTip.total,
+        adjustedTotal: updatedTip.adjustedTotal
+      });
     } else {
       // Add new tip
       await addDoc(collection(db, 'driver_tips'), {
-        driverId,
-        date,
-        platforms: [{ platform, amount: parseFloat(amount) }],
-        total: parseFloat(amount),
-        adjustedTotal: parseFloat(amount) * 0.9
+        driverId: updatedTip.driverId,
+        date: updatedTip.date,
+        tips: updatedTip.tips,
+        total: updatedTip.total,
+        adjustedTotal: updatedTip.adjustedTotal
       });
     }
-  
     fetchTips();
     setEditingTip(null);
   };
   
   const handleDeleteTip = async () => {
-    if (editingTip.id && window.confirm('Are you sure you want to delete this tip?')) {
+    if (editingTip.id && window.confirm('Are you sure you want to delete all tips for this day?')) {
       const tipRef = doc(db, 'driver_tips', editingTip.id);
-      const tipDoc = await getDoc(tipRef);
-      if (tipDoc.exists()) {
-        const tipData = tipDoc.data();
-        const updatedPlatforms = tipData.platforms.filter(p => p.platform !== editingTip.platform);
-  
-        if (updatedPlatforms.length === 0) {
-          // If no platforms left, delete the entire document
-          await deleteDoc(tipRef);
-        } else {
-          // Update the document with the remaining platforms
-          const total = updatedPlatforms.reduce((sum, p) => sum + parseFloat(p.amount), 0);
-          const adjustedTotal = total * 0.9;
-          await updateDoc(tipRef, {
-            platforms: updatedPlatforms,
-            total,
-            adjustedTotal
-          });
-        }
-      }
+      await deleteDoc(tipRef);
       fetchTips();
       setEditingTip(null);
     }
   };
-  
-  
-
 
   const weekDays = getWeekDays();
 
@@ -152,7 +164,7 @@ function DriverTipsTracker() {
         />
       </div>
       <table className="w-full border-collapse border">
-      <thead>
+        <thead>
           <tr>
             <th className="border p-2">Driver Name</th>
             {weekDays.map(day => (
@@ -166,33 +178,18 @@ function DriverTipsTracker() {
             const driverTips = tips.filter(tip => tip.driverId === driver.id);
             const weekTotal = driverTips.reduce((sum, tip) => sum + tip.total, 0);
             const weekAdjustedTotal = driverTips.reduce((sum, tip) => sum + tip.adjustedTotal, 0);
-
             return (
               <tr key={driver.id}>
                 <td className="border p-2 font-bold">{driver.name}</td>
-                {weekDays.map(day => (
-                  <td key={day} className="border p-2">
-                    <table className="w-full">
-                      <tbody>
-                        {platforms.map(platform => {
-                          const dayTips = getDayTips(driver.id, day);
-                          const tipAmount = dayTips.find(t => t.platform === platform.name)?.amount || '';
-                          return (
-                            <tr key={platform.id}>
-                              <td className="w-1/2">{platform.name}</td>
-                              <td 
-                                className="w-1/2 cursor-pointer hover:bg-gray-100"
-                                onClick={() => handleCellClick(driver.id, day, platform.name)}
-                              >
-                                ${!tipAmount? 0 : tipAmount}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </td>
-                ))}
+                {weekDays.map(day => {
+                  const dayTips = getDayTips(driver.id, day);
+                  const dayTotal = dayTips.reduce((sum, tip) => sum + (tip.amount || 0), 0);
+                  return (
+                    <td key={day} className="border p-2 cursor-pointer hover:bg-gray-100" onClick={() => handleCellClick(driver.id, day)}>
+                      ${dayTotal.toFixed(2)}
+                    </td>
+                  );
+                })}
                 <td className="border p-2">
                   Total: ${weekTotal.toFixed(2)}<br/>
                   Adjusted: ${weekAdjustedTotal.toFixed(2)}
@@ -202,38 +199,15 @@ function DriverTipsTracker() {
           })}
         </tbody>
       </table>
-
       {editingTip && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <h3 className="text-lg font-bold mb-4">Edit Tip</h3>
-            <form onSubmit={handleFormSubmit}>
-              <div className="mb-4">
-                <label className="block mb-2">Amount:</label>
-                <input 
-                  type="number" 
-                  value={editingTip.amount} 
-                  onChange={(e) => setEditingTip({...editingTip, amount: e.target.value})}
-                  className="w-full border p-2 rounded"
-                />
-              </div>
-              <div className="flex justify-between">
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                  {editingTip.id ? 'Update' : 'Add'}
-                </button>
-                {editingTip.id && (
-                  <button type="button" onClick={handleDeleteTip} className="bg-red-500 text-white px-4 py-2 rounded">
-                    Delete
-                  </button>
-                )}
-                <button type="button" onClick={() => setEditingTip(null)} className="bg-gray-300 px-4 py-2 rounded">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+  <TipEditModal
+    editingTip={editingTip}
+    platforms={platforms}
+    onSave={handleFormSubmit}
+    onCancel={() => setEditingTip(null)}
+    onDelete={handleDeleteTip}
+  />
+)}
     </div>
   );
 }
