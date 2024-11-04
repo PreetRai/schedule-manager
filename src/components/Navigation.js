@@ -25,7 +25,7 @@ function Navigation() {
     ]},
     { role: 'manager', items: [
       { to: '/manager-dashboard', text: 'Scheduler' },
-      { to: '/driver-tips', text:'Tips'},
+      { to: '/driver-tips', text:'Driver Tips'},
       { to: '/payroll', text: 'Payroll' },
       { to: '/platforms', text: 'Platform List' },
     ]},
