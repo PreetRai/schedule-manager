@@ -59,7 +59,7 @@ function DriverPortal() {
     try {
       const start = format(weekStart, 'yyyy-MM-dd');
       const end = format(endOfWeek(weekStart,{weekStartsOn:1}), 'yyyy-MM-dd');
-      
+        
       const shiftsRef = collection(db, 'driver_shifts');
       const q = query(
         shiftsRef,
