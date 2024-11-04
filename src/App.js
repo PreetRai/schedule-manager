@@ -36,10 +36,11 @@ function App() {
             <Route path="/driver-dashboard" element={<DriverPortal />} />
             <Route path="/employee-dashboard" element={<EmployeePortal />} />
             <Route path="/" element={
-              <PrivateRoute component={Dashboard} requiredRole="admin" />
+              <PrivateRoute component={Dashboard} requiredRole={"admin"} />
             } />
             <Route path="/employees" element={
-              <PrivateRoute component={EmployeeList} requiredRole="admin" />
+              <PrivateRoute component={EmployeeList}
+              requiredRoles={["admin", "manager"]} />
             } />
             <Route path="/stores" element={
               <PrivateRoute component={StoreManager} requiredRole="admin" />
@@ -51,11 +52,12 @@ function App() {
           
               <PrivateRoute component={Manager}    />
             } />
-             <Route path="/managerlist" element={
-              <PrivateRoute component={ManagerList}  />
+             <Route path="/managerlist" element={ 
+              <PrivateRoute component={ManagerList}  requiredRole="admin"/>
             } />
             <Route path="/driverlist" element={
-              <PrivateRoute component={DriverList}  />
+              <PrivateRoute component={DriverList} 
+              requiredRoles={["admin", "manager"]}/>
             } />
             <Route path="/driver-tips" element={<DriverTipsTracker />} requiredRole={["manager","admin"]}/>
            <Route

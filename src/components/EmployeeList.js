@@ -3,7 +3,10 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, where, query } 
 import { getAuth,  sendPasswordResetEmail } from 'firebase/auth';
 import { db } from '../firebase';
 
+import { useAuth } from '../contexts/AuthContext';
 function EmployeeList() {
+  
+  const { currentUser } = useAuth();
   const [employees, setEmployees] = useState([]);
   const [stores, setStores] = useState([]);
   const [newEmployee, setNewEmployee] = useState({

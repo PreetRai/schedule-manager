@@ -24,6 +24,8 @@ function Navigation() {
       { to: '/analytics', text: 'Analytics' },
     ]},
     { role: 'manager', items: [
+      { to: '/driverlist', text: 'Drivers List' },
+      { to: '/employees', text: 'Employees List' },
       { to: '/manager-dashboard', text: 'Scheduler' },
       { to: '/driver-tips', text:'Driver Tips'},
       { to: '/payroll', text: 'Payroll' },
